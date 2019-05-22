@@ -236,27 +236,27 @@ class Pix2Pix():
 
 if __name__ == '__main__':
     #train
-    #gan = Pix2Pix()
-    #gan.train(epochs=2, batch_size=1, sample_interval=2)
+    gan = Pix2Pix()
+    gan.train(epochs=200, batch_size=1, sample_interval=200)
 
     
     #"""
     #"""
-    model = load_model("saved_model/gen_model0.h5")
+    #model = load_model("saved_model/gen_model0.h5")
 
-    a = DataLoader("paths",img_res=(256, 256))
+    #a = DataLoader("paths",img_res=(256, 256))
 
-    img_test, img_true = a.load_data(batch_size=1, is_testing=True)
+    #img_test, img_true = a.load_data(batch_size=1, is_testing=True)
 
-    fake_A = model.predict(img_test)
+    #fake_A = model.predict(img_test)
 
-    plt.figure(1)
-    plt.imshow(img_test[0])
-    plt.figure(2)
-    plt.imshow(img_true[0])
-    plt.figure(3)
-    plt.imshow(fake_A[0])
-    plt.show() 
+    #plt.figure(1)
+    #plt.imshow(img_test[0])
+    #plt.figure(2)
+    #plt.imshow(img_true[0])
+    #plt.figure(3)
+    #plt.imshow(fake_A[0])
+    #plt.show() 
     #"""
 
 

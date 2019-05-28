@@ -198,14 +198,14 @@ class Pix2Pix():
                     self.sample_images(epoch, batch_i)
 
             if accuracy >= accuracy_prev:
-                if os.path.exists("saved_model/gen_model%d.h5" % (epoch-1)):
-                    os.remove("saved_model/gen_model%d.h5" % (epoch-1))
-                    os.remove("saved_model/both_model%d.h5" % (epoch-1))
-                    os.remove("saved_model/dis_model%d.h5" % (epoch-1))
+                if os.path.exists("saved_model/gen_model%d_line.h5" % (epoch-1)):
+                    os.remove("saved_model/gen_model%d_line.h5" % (epoch-1))
+                    os.remove("saved_model/both_model%d_line.h5" % (epoch-1))
+                    os.remove("saved_model/dis_model%d_line.h5" % (epoch-1))
 
-                self.generator.save("saved_model/gen_model%d.h5" % (epoch))
-                self.combined.save("saved_model/both_model%d.h5" % (epoch))
-                self.discriminator.save("saved_model/dis_model%d.h5" % (epoch))
+                self.generator.save("saved_model/gen_model%d_line.h5" % (epoch))
+                self.combined.save("saved_model/both_model%d_line.h5" % (epoch))
+                self.discriminator.save("saved_model/dis_model%d_line.h5" % (epoch))
 
 
     def sample_images(self, epoch, batch_i):
@@ -229,7 +229,7 @@ class Pix2Pix():
                 axs[i, j].set_title(titles[i])
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("images/%s/%d_%d.png" % (self.dataset_name, epoch, batch_i))
+        fig.savefig("images/%s/%d_%d_line.png" % (self.dataset_name, epoch, batch_i))
         plt.close()
 
 
@@ -241,22 +241,22 @@ if __name__ == '__main__':
 
     
     #"""
-    #"""
-    #model = load_model("saved_model/gen_model0.h5")
+    """
+    model = load_model("saved_model/gen_model199.h5")
 
-    #a = DataLoader("paths",img_res=(256, 256))
+    a = DataLoader("paths",img_res=(256, 256))
 
-    #img_test, img_true = a.load_data(batch_size=1, is_testing=True)
+    img_test, img_true = a.load_data(batch_size=1, is_testing=True)
 
-    #fake_A = model.predict(img_test)
+    fake_A = model.predict(img_test)
 
-    #plt.figure(1)
-    #plt.imshow(img_test[0])
-    #plt.figure(2)
-    #plt.imshow(img_true[0])
-    #plt.figure(3)
-    #plt.imshow(fake_A[0])
-    #plt.show() 
+    plt.figure(1)
+    plt.imshow(img_test[0])
+    plt.figure(2)
+    plt.imshow(img_true[0])
+    plt.figure(3)
+    plt.imshow(fake_A[0])
+    plt.show() 
     #"""
 
 

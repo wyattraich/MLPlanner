@@ -237,9 +237,9 @@ class Pix2Pix():
 if __name__ == '__main__':
     #train
     gan = Pix2Pix()
-    gan.train(epochs=50, batch_size=1, sample_interval=200)
+    gan.train(epochs=5, batch_size=5, sample_interval=200)
 
-    
+
     #"""
     """
     model = load_model("saved_model/gen_model199.h5")
@@ -256,7 +256,5 @@ if __name__ == '__main__':
     plt.imshow(img_true[0])
     plt.figure(3)
     plt.imshow(fake_A[0])
-    plt.show() 
+    plt.show()
     #"""
-
-

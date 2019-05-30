@@ -197,15 +197,16 @@ class Pix2Pix():
                 if batch_i % sample_interval == 0:
                     self.sample_images(epoch, batch_i)
 
-            if accuracy >= accuracy_prev:
-                if os.path.exists("saved_model/gen_model%d_line.h5" % (epoch-1)):
-                    os.remove("saved_model/gen_model%d_line.h5" % (epoch-1))
-                    os.remove("saved_model/both_model%d_line.h5" % (epoch-1))
-                    os.remove("saved_model/dis_model%d_line.h5" % (epoch-1))
+            #if accuracy >= accuracy_prev:
+             #   if os.path.exists("saved_model/gen_model%d_line.h5" % (epoch-1)):
+              #      os.remove("saved_model/gen_model%d_line.h5" % (epoch-1))
+               #     os.remove("saved_model/both_model%d_line.h5" % (epoch-1))
+                #    os.remove("saved_model/dis_model%d_line.h5" % (epoch-1))
 
-                self.generator.save("saved_model/gen_model%d_line.h5" % (epoch))
-                self.combined.save("saved_model/both_model%d_line.h5" % (epoch))
-                self.discriminator.save("saved_model/dis_model%d_line.h5" % (epoch))
+
+        self.generator.save("saved_model/gen_model_line.h5")
+        self.combined.save("saved_model/both_model_line.h5")
+        self.discriminator.save("saved_model/dis_model_line.h5")
 
 
     def sample_images(self, epoch, batch_i):
@@ -237,7 +238,7 @@ class Pix2Pix():
 if __name__ == '__main__':
     #train
     gan = Pix2Pix()
-    gan.train(epochs=50, batch_size=5, sample_interval=9)
+    gan.train(epochs=1000, batch_size=5, sample_interval=100)
 
 
     #"""

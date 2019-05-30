@@ -199,7 +199,7 @@ class Pix2Pix():
 
             if accuracy >= accuracy_prev:
                 if os.path.exists("saved_model/gen_model%d_simp.h5" % (epoch-1)):
-                    os.remove("saved_model/gen_model%d.h5_simp" % (epoch-1))
+                    os.remove("saved_model/gen_model%d_simp.h5" % (epoch-1))
                     os.remove("saved_model/both_model%d_simp.h5" % (epoch-1))
                     os.remove("saved_model/dis_model%d_simp.h5" % (epoch-1))
 

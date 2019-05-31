@@ -41,10 +41,12 @@ class Pix2Pix():
         self.disc_patch = (patch, patch, 1)
 
         # Number of filters in the first layer of G and D
-        self.gf = 64
-        self.df = 64
+        self.gf = 8
+        self.df = 8
 
-        optimizer = Adam(0.0002, 0.5)
+        # Learning rate
+        lr = 0.009
+        optimizer = Adam(lr, 0.5)
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
@@ -110,17 +112,23 @@ class Pix2Pix():
         d5 = conv2d(d4, self.gf*8)
         d6 = conv2d(d5, self.gf*8)
         d7 = conv2d(d6, self.gf*8)
+        d8 = conv2d(d7, self.gf*8)
 
         # Upsampling
-        u1 = deconv2d(d7, d6, self.gf*8)
-        u2 = deconv2d(u1, d5, self.gf*8)
-        u3 = deconv2d(u2, d4, self.gf*8)
-        u4 = deconv2d(u3, d3, self.gf*4)
-        u5 = deconv2d(u4, d2, self.gf*2)
-        u6 = deconv2d(u5, d1, self.gf)
+        u1 = deconv2d(d8, d7, self.gf*8)
+        u2 = deconv2d(u1, d6, self.gf*8)
+        u3 = deconv2d(u2, d5, self.gf*8)
+        u4 = deconv2d(u3, d4, self.gf*8)
+        u5 = deconv2d(u4, d3, self.gf*8)
+        u6 = deconv2d(u5, d2, self.gf*8)
+        u7 = deconv2d(u6, d1, self.gf*8)
 
-        u7 = UpSampling2D(size=2)(u6)
-        output_img = Conv2D(self.channels, kernel_size=4, strides=1, padding='same', activation='tanh')(u7)
+        u8 = UpSampling2D(size=2)(u7)
+        output_img = Conv2D(self.channels,
+                            kernel_size=4,
+                            strides=1,
+                            padding='same',
+                            activation='tanh')(u8)
 
         return Model(d0, output_img)
 
@@ -157,11 +165,16 @@ class Pix2Pix():
         valid = np.ones((batch_size,) + self.disc_patch)
         fake = np.zeros((batch_size,) + self.disc_patch)
 
-        accuracy = 0
+        accuracy = []
+        epoch_vec = []
+        G_loss = []
+        D_loss = []
+
+        #accuracy = 0
 
         for epoch in range(epochs):
 
-            accuracy_prev = accuracy
+            #accuracy_prev = accuracy
 
             for batch_i, (imgs_A, imgs_B) in enumerate(self.data_loader.load_batch(batch_size)):
 
@@ -192,23 +205,41 @@ class Pix2Pix():
                                                                         g_loss[0],
                                                                         elapsed_time))
 
-                if d_loss[1] > accuracy:
-                    accuracy = d_loss[1]
+                accuracy.append(100*d_loss[1])
+                epoch_vec.append(epoch)
+                G_loss.append(g_loss[0])
+                D_loss.append(d_loss[0])
 
                 # If at save interval => save generated image samples
                 if batch_i % sample_interval == 0:
                     self.sample_images(epoch, batch_i)
 
-            #if accuracy >= accuracy_prev:
-             #   if os.path.exists("saved_model/gen_model%d_line.h5" % (epoch-1)):
-              #      os.remove("saved_model/gen_model%d_line.h5" % (epoch-1))
-               #     os.remove("saved_model/both_model%d_line.h5" % (epoch-1))
-                #    os.remove("saved_model/dis_model%d_line.h5" % (epoch-1))
 
-
+        # Save model
         self.generator.save("saved_model/gen_model_line.h5")
         self.combined.save("saved_model/both_model_line.h5")
         self.discriminator.save("saved_model/dis_model_line.h5")
+
+        plt.figure(1)
+        plt.plot(epoch_vec,accuracy)
+        plt.title('Accuracy vs Epoch')
+        plt.xlabel('Epoch')
+        plt.ylabel('Accuracy')
+        plt.savefig('saved_plots/accuracy.png')
+
+        plt.figure(2)
+        plt.plot(epoch_vec,G_loss)
+        plt.title('Generator Loss vs Epoch')
+        plt.xlabel('Epoch')
+        plt.ylabel('Generator Loss')
+        plt.savefig('saved_plots/g_loss.png')
+
+        plt.figure(3)
+        plt.plot(epoch_vec,D_loss)
+        plt.title('Discriminator Loss vs Epoch')
+        plt.xlabel('Epoch')
+        plt.ylabel('Discriminator Loss')
+        plt.savefig('saved_plots/d_loss.png')
 
 
     def sample_images(self, epoch, batch_i):
@@ -240,7 +271,7 @@ class Pix2Pix():
 if __name__ == '__main__':
     #train
     gan = Pix2Pix()
-    gan.train(epochs=10, batch_size=1, sample_interval=200)
+    gan.train(epochs=100, batch_size=10, sample_interval=100)
 
 
     #"""

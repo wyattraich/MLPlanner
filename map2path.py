@@ -20,6 +20,8 @@ from data_loader import DataLoader
 import numpy as np
 import os
 
+# CUDA_VISIBLE_DEVICES=0 python3 map2path.py
+
 class Pix2Pix():
     def __init__(self):
         # Input shape
@@ -238,7 +240,7 @@ class Pix2Pix():
 if __name__ == '__main__':
     #train
     gan = Pix2Pix()
-    gan.train(epochs=1000, batch_size=5, sample_interval=100)
+    gan.train(epochs=10, batch_size=1, sample_interval=200)
 
 
     #"""

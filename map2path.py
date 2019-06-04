@@ -16,7 +16,7 @@ from keras.models import load_model
 import datetime
 import matplotlib.pyplot as plt
 import sys
-from data_loader import DataLoader
+from data_loader2 import DataLoader
 import numpy as np
 import os
 
@@ -75,6 +75,17 @@ class Pix2Pix():
         self.combined.compile(loss=['mse', 'mae'],
                               loss_weights=[1, 100],
                               optimizer=optimizer)
+
+        self.generator.compile(loss=self.pixel_wise, optimizer=optimizer)
+
+
+    def pixel_wise(self,imgs_A,fake_A):
+
+        L1_gen = np.subtract(imgs_A,fake_A)
+        L1_gen = np.abs(L1_gen)
+        L1_gen = np.sum(L1_gen)
+
+        return L1_gen
 
     def build_generator(self):
         """U-Net Generator"""
@@ -184,7 +195,7 @@ class Pix2Pix():
 
                 # Train the generators
                 g_loss = self.combined.train_on_batch([imgs_A, imgs_B], [valid, imgs_A])
-                L1_loss = self.generator.train_on_batch(imgs_A, fake_A)
+                gen_loss = self.generator.train_on_batch([imgs_A],[fake_A])
 
                 elapsed_time = datetime.datetime.now() - start_time
                 # Plot the progress

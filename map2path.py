@@ -45,7 +45,7 @@ class Pix2Pix():
         self.df = 8
 
         # Learning rate
-        lr = 0.009
+        lr = 0.0002
         optimizer = Adam(lr, 0.5)
 
         # Build and compile the discriminator
@@ -186,9 +186,13 @@ class Pix2Pix():
                 fake_A = self.generator.predict(imgs_B)
 
                 # Train the discriminators (original images = real / generated = Fake)
+                # img_A is the ground truth, B is the input (empty map)
+                # fake_A is the generated
                 d_loss_real = self.discriminator.train_on_batch([imgs_A, imgs_B], valid)
                 d_loss_fake = self.discriminator.train_on_batch([fake_A, imgs_B], fake)
                 d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
+
+                #d_loss = self.discriminator.train_on_batch([imgs_A, fake_A], fake)
 
                 # -----------------
                 #  Train Generator
@@ -271,7 +275,7 @@ class Pix2Pix():
 if __name__ == '__main__':
     #train
     gan = Pix2Pix()
-    gan.train(epochs=100, batch_size=10, sample_interval=100)
+    gan.train(epochs=50, batch_size=10, sample_interval=100)
 
 
     #"""

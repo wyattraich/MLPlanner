@@ -155,7 +155,10 @@ class Pix2Pix():
         valid = np.ones((batch_size,) + self.disc_patch)
         fake = np.zeros((batch_size,) + self.disc_patch)
 
-        accuracy = 0
+        accuracy = []
+        epoch_vec = []
+        G_loss = []
+        D_loss = []
 
         for epoch in range(epochs):
 
@@ -190,12 +193,18 @@ class Pix2Pix():
                                                                         g_loss[0],
                                                                         elapsed_time))
 
-                if d_loss[1] > accuracy:
-                    accuracy = d_loss[1]
+                accuracy.append(100*d_loss[1])
+                epoch_vec.append(epoch)
+                G_loss.append(g_loss[0])
+                D_loss.append(d_loss[0])
+
+
+                #if d_loss[1] > accuracy:
+                 #   accuracy = d_loss[1]
 
                 # If at save interval => save generated image samples
                 if batch_i % sample_interval == 0:
-                    self.sample_images(epoch, batch_i)
+                   self.sample_images(epoch, batch_i)
 
             #if accuracy >= accuracy_prev:
              #   if os.path.exists("saved_model/gen_model%d_line.h5" % (epoch-1)):
@@ -204,9 +213,30 @@ class Pix2Pix():
                 #    os.remove("saved_model/dis_model%d_line.h5" % (epoch-1))
 
 
-        self.generator.save("saved_model/gen_model_line.h5")
-        self.combined.save("saved_model/both_model_line.h5")
-        self.discriminator.save("saved_model/dis_model_line.h5")
+        self.generator.save("saved_model/gen_model%d_line.h5" % (epoch)) 
+        self.combined.save("saved_model/both_model%d_line.h5" % (epoch))
+        self.discriminator.save("saved_model/dis_model%d_line.h5" % (epoch))
+
+        plt.figure(1)
+        plt.plot(epoch_vec,accuracy)
+        plt.title('Accuracy vs Epoch')
+        plt.xlabel('Epoch')
+        plt.ylabel('Accuracy')
+        plt.savefig('saved_plots/accuracy.png')
+
+        plt.figure(2)
+        plt.plot(epoch_vec,G_loss)
+        plt.title('Generator Loss vs Epoch')
+        plt.xlabel('Epoch')
+        plt.ylabel('Generator Loss')
+        plt.savefig('saved_plots/g_loss.png')
+
+        plt.figure(3)
+        plt.plot(epoch_vec,D_loss)
+        plt.title('Discriminator Loss vs Epoch')
+        plt.xlabel('Epoch')
+        plt.ylabel('Discriminator Loss')
+        plt.savefig('saved_plots/d_loss.png')
 
 
     def sample_images(self, epoch, batch_i):
@@ -238,7 +268,7 @@ class Pix2Pix():
 if __name__ == '__main__':
     #train
     gan = Pix2Pix()
-    gan.train(epochs=1000, batch_size=5, sample_interval=100)
+    gan.train(epochs=2000, batch_size=10, sample_interval=100)
 
 
     #"""

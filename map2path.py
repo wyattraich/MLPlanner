@@ -184,6 +184,7 @@ class Pix2Pix():
 
                 # Train the generators
                 g_loss = self.combined.train_on_batch([imgs_A, imgs_B], [valid, imgs_A])
+                L1_loss = self.generator.train_on_batch(imgs_A, fake_A)
 
                 elapsed_time = datetime.datetime.now() - start_time
                 # Plot the progress

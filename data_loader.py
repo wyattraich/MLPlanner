@@ -2,6 +2,7 @@ import scipy
 from glob import glob
 import numpy as np
 import matplotlib.pyplot as plt
+import tesnorflow as tf
 
 class DataLoader():
     def __init__(self, dataset_name, img_res=(128, 128)):
@@ -16,6 +17,7 @@ class DataLoader():
 
         imgs_A = []
         imgs_B = []
+        tf.print("iter------------------------------------------------------------")
         for img_path in batch_images:
             img = self.imread(img_path)
 

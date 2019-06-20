@@ -1,6 +1,7 @@
 from __future__ import print_function, division
 import scipy
 import scipy.misc
+import imageio
 
 from tensorflow import keras
 from tensorflow.keras import layers
@@ -279,25 +280,36 @@ class Pix2Pix():
 
 if __name__ == '__main__':
     #train
-    gan = Pix2Pix()
-    gan.train(epochs=2000, batch_size=10, sample_interval=100)
+    #gan = Pix2Pix()
+    #gan.train(epochs=2000, batch_size=10, sample_interval=100)
 
 
     #"""
-    """
-    model = load_model("saved_model/gen_model199.h5")
+    
+    model = load_model("saved_model/gen_model_line.h5")
 
     a = DataLoader("paths",img_res=(256, 256))
 
-    img_test, img_true = a.load_data(batch_size=1, is_testing=True)
+    imgs_test, img_true = a.load_data(batch_size=1, is_testing=True)
 
-    fake_A = model.predict(img_test)
+    #print(img_test)
+
+    #img_test = imageio.imread('./Keras-GAN/pix2pix/MLPlanner/1.png',pilmode='RGB')
+
+    #img_test = imageio.imread('1.png', pilmode='RGB').astype(np.float)
+
+    #imgs_test = []
+
+    #imgs_test.append(img_test)
+    #imgs_test = np.array(imgs_test)/127.5 - 1.
+
+    fake_A = model.predict(imgs_test)
 
     plt.figure(1)
-    plt.imshow(img_test[0])
+    plt.imshow(imgs_test[0])
+    #plt.figure(2)
+    #plt.imshow(img_true[0])
     plt.figure(2)
-    plt.imshow(img_true[0])
-    plt.figure(3)
     plt.imshow(fake_A[0])
     plt.show()
     #"""

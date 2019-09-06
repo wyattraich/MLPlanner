@@ -20,6 +20,7 @@ import sys
 from data_loader2 import DataLoader
 import numpy as np
 import os
+import tensorflow as tf
 
 class Pix2Pix():
     def __init__(self):
@@ -77,16 +78,21 @@ class Pix2Pix():
                               loss_weights=[1, 100],
                               optimizer=optimizer)
 
-        self.generator.compile(loss=self.pixel_wise, loss_weights= 100, optimizer=optimizer)
+        self.generator.compile(loss='mae', loss_weights=[200], optimizer=optimizer)
 
 
     def pixel_wise(self,imgs_A,fake_A):
 
-        L1_gen = np.subtract(imgs_A,fake_A)
-        L1_gen = np.abs(L1_gen)
-        L1_gen = np.sum(L1_gen)
+        L1_gen_diff = np.subtract(imgs_A[:,:,1],fake_A[:,:,1])
+        #print(imgs_A)
+        #print(imgs_A[:,:,1])
+        #print(L1_gen_diff)
+        L1_gen_abs = np.abs(L1_gen_diff)
+        #print(L1_gen_abs)
+        L1_gen = np.sum(L1_gen_abs)
+        #print(L1_gen)
 
-        return L1_gen
+        return L1_gen;
 
     def build_generator(self):
         """U-Net Generator"""
@@ -185,6 +191,11 @@ class Pix2Pix():
                 # Condition on B and generate a translated version
                 fake_A = self.generator.predict(imgs_B)
 
+                #print(imgs_A.shape)
+                #plt.figure(0)
+                #plt.imshow(imgs_A[1][:][:][1])
+                #plt.show()
+
                 # Train the discriminators (original images = real / generated = Fake)
                 d_loss_real = self.discriminator.train_on_batch([imgs_A, imgs_B], valid)
                 d_loss_fake = self.discriminator.train_on_batch([fake_A, imgs_B], fake)
@@ -218,7 +229,7 @@ class Pix2Pix():
                  #   accuracy = d_loss[1]
 
                 # If at save interval => save generated image samples
-                if batch_i % sample_interval == 0:
+                if epoch % sample_interval == 0 and batch_i == 1:
                    self.sample_images(epoch, batch_i)
 
             #if accuracy >= accuracy_prev:
@@ -228,9 +239,9 @@ class Pix2Pix():
                 #    os.remove("saved_model/dis_model%d_line.h5" % (epoch-1))
 
 
-        self.generator.save("saved_model/gen_model%d_line.h5" % (epoch))
-        self.combined.save("saved_model/both_model%d_line.h5" % (epoch))
-        self.discriminator.save("saved_model/dis_model%d_line.h5" % (epoch))
+        self.generator.save("saved_model/gen_model%d_line_cust.h5" % (epoch))
+        self.combined.save("saved_model/both_model%d_line_cust.h5" % (epoch))
+        self.discriminator.save("saved_model/dis_model%d_line_cust.h5" % (epoch))
 
         plt.figure(1)
         plt.plot(epoch_vec,accuracy)
@@ -275,7 +286,7 @@ class Pix2Pix():
                 axs[i, j].set_title(titles[i])
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("images/%s/%d_%d_line.png" % (self.dataset_name, epoch, batch_i))
+        fig.savefig("images/%s/%d_%d_line_n_cust.png" % (self.dataset_name, epoch, batch_i))
         plt.close()
 
 
@@ -283,7 +294,7 @@ class Pix2Pix():
 if __name__ == '__main__':
     #train
     gan = Pix2Pix()
-    gan.train(epochs=2000, batch_size=10, sample_interval=100)
+    gan.train(epochs=2000, batch_size=10, sample_interval=20)
 
 
     """

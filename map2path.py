@@ -77,7 +77,7 @@ class Pix2Pix():
                               loss_weights=[1, 100],
                               optimizer=optimizer)
 
-        self.generator.compile(loss=self.pixel_wise, optimizer=optimizer)
+        self.generator.compile(loss=self.pixel_wise, loss_weights= 100, optimizer=optimizer)
 
 
     def pixel_wise(self,imgs_A,fake_A):
@@ -196,14 +196,16 @@ class Pix2Pix():
 
                 # Train the generators
                 g_loss = self.combined.train_on_batch([imgs_A, imgs_B], [valid, imgs_A])
+
+                #apply bit wise loss on generator green path
                 gen_loss = self.generator.train_on_batch([imgs_A],[fake_A])
 
                 elapsed_time = datetime.datetime.now() - start_time
                 # Plot the progress
-                print ("[Epoch %d/%d] [Batch %d/%d] [D loss: %f, acc: %3d%%] [G loss: %f] time: %s" % (epoch, epochs,
+                print ("[Epoch %d/%d] [Batch %d/%d] [D loss: %f, acc: %3d%%] [G loss: %f] [Gen loss: %f] time: %s" % (epoch, epochs,
                                                                         batch_i, self.data_loader.n_batches,
                                                                         d_loss[0], 100*d_loss[1],
-                                                                        g_loss[0],
+                                                                        g_loss[0], gen_loss,
                                                                         elapsed_time))
 
                 accuracy.append(100*d_loss[1])
@@ -226,7 +228,7 @@ class Pix2Pix():
                 #    os.remove("saved_model/dis_model%d_line.h5" % (epoch-1))
 
 
-        self.generator.save("saved_model/gen_model%d_line.h5" % (epoch)) 
+        self.generator.save("saved_model/gen_model%d_line.h5" % (epoch))
         self.combined.save("saved_model/both_model%d_line.h5" % (epoch))
         self.discriminator.save("saved_model/dis_model%d_line.h5" % (epoch))
 
@@ -280,28 +282,24 @@ class Pix2Pix():
 
 if __name__ == '__main__':
     #train
-    #gan = Pix2Pix()
-    #gan.train(epochs=2000, batch_size=10, sample_interval=100)
+    gan = Pix2Pix()
+    gan.train(epochs=2000, batch_size=10, sample_interval=100)
 
 
-    #"""
-    
+    """
     model = load_model("saved_model/gen_model_line.h5")
 
-    a = DataLoader("paths",img_res=(256, 256))
+    #a = DataLoader("paths",img_res=(256, 256))
 
-    imgs_test, img_true = a.load_data(batch_size=1, is_testing=True)
+    #imgs_test, img_true = a.load_data(batch_size=1, is_testing=True)
 
     #print(img_test)
 
-    #img_test = imageio.imread('./Keras-GAN/pix2pix/MLPlanner/1.png',pilmode='RGB')
+    img_test = imageio.imread('4.png', pilmode='RGB').astype(np.float)
+    imgs_test = []
 
-    #img_test = imageio.imread('1.png', pilmode='RGB').astype(np.float)
-
-    #imgs_test = []
-
-    #imgs_test.append(img_test)
-    #imgs_test = np.array(imgs_test)/127.5 - 1.
+    imgs_test.append(img_test)
+    imgs_test = np.array(imgs_test)/127.5 - 1.
 
     fake_A = model.predict(imgs_test)
 
@@ -312,4 +310,5 @@ if __name__ == '__main__':
     plt.figure(2)
     plt.imshow(fake_A[0])
     plt.show()
-    #"""
+
+    """

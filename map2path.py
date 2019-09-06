@@ -17,7 +17,7 @@ from keras.models import load_model
 import datetime
 import matplotlib.pyplot as plt
 import sys
-from data_loader2 import DataLoader
+from data_loader import DataLoader
 import numpy as np
 import os
 import tensorflow as tf

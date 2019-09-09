@@ -37,7 +37,7 @@ def pixel_wise(y_true,y_pred):
     #elem_float = K.cast(elem_bool,dtype='float32')
     #L1_gen = K.sum(elem_float)
 
-    return 0.01*K.sum(K.abs(y_true[0,:,:,1] - y_pred[0,:,:,1]))
+    return K.sum(K.abs(y_true[0,:,:,1] - y_pred[0,:,:,1]))
 
 class Pix2Pix():
     def __init__(self):
@@ -239,7 +239,7 @@ class Pix2Pix():
 
                 # If at save interval => save generated image samples
                 #if epoch % sample_interval == 0 and batch_i == 1:
-                if batch_i % sample_interval == 0: 
+                if batch_i % sample_interval == 0:
                     self.sample_images(epoch, batch_i)
 
             #if accuracy >= accuracy_prev:
@@ -304,7 +304,7 @@ class Pix2Pix():
 if __name__ == '__main__':
     #train
     gan = Pix2Pix()
-    gan.train(epochs=3, batch_size=1, sample_interval=200)
+    gan.train(epochs=10, batch_size=1, sample_interval=200)
 
     """
     model = load_model("saved_model/gen_model_line.h5")

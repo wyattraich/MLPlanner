@@ -2,7 +2,7 @@ import scipy
 from glob import glob
 import numpy as np
 import matplotlib.pyplot as plt
-import tesnorflow as tf
+import tensorflow as tf
 
 class DataLoader():
     def __init__(self, dataset_name, img_res=(128, 128)):

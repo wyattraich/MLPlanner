@@ -95,7 +95,7 @@ class Pix2Pix():
                               loss_weights=[1, 100],
                               optimizer=optimizer)
 
-        self.generator.compile(loss=pixel_wise, loss_weights=[1], optimizer=optimizer)
+        self.generator.compile(loss=pixel_wise, loss_weights=[100], optimizer=optimizer)
 
     def build_generator(self):
         """U-Net Generator"""

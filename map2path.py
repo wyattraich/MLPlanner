@@ -78,7 +78,7 @@ class Pix2Pix():
                               loss_weights=[1, 100],
                               optimizer=optimizer)
 
-        self.generator.compile(loss='mae', loss_weights=[50], optimizer=optimizer)
+        #self.generator.compile(loss='mae', loss_weights=[50], optimizer=optimizer)
 
 
     def pixel_wise(self,imgs_A,fake_A):
@@ -209,7 +209,7 @@ class Pix2Pix():
                 g_loss = self.combined.train_on_batch([imgs_A, imgs_B], [valid, imgs_A])
 
                 #apply L1 loss on generator
-                gen_loss = self.generator.train_on_batch([fake_A],[imgs_A])
+                #gen_loss = self.generator.train_on_batch([fake_A],[imgs_A])
 
                 elapsed_time = datetime.datetime.now() - start_time
                 # Plot the progress

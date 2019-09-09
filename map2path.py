@@ -14,6 +14,7 @@ from keras.layers.convolutional import UpSampling2D, Conv2D
 from keras.models import Sequential, Model
 from keras.optimizers import Adam
 from keras.models import load_model
+import keras.backend as K
 import datetime
 import matplotlib.pyplot as plt
 import sys
@@ -21,6 +22,22 @@ from data_loader import DataLoader
 import numpy as np
 import os
 import tensorflow as tf
+
+def pixel_wise(y_true,y_pred):
+
+    #L1_gen_diff = np.subtract(imgs_A[0,:,:,1],fake_A[0,:,:,1])
+    #print(imgs_A[0,:,:,1])
+    #L1_gen_abs = np.abs(L1_gen_diff)
+    #print(L1_gen_abs)
+    #L1_gen = np.sum(L1_gen_abs)
+    #print(L1_gen)
+
+    #elem_bool = K.not_equal(y_true[0,:,:,1], y_pred[0,:,:,1])
+    #print(elem_bool)
+    #elem_float = K.cast(elem_bool,dtype='float32')
+    #L1_gen = K.sum(elem_float)
+
+    return K.sum(K.abs(y_true[0,:,:,1] - y_pred[0,:,:,1]))
 
 class Pix2Pix():
     def __init__(self):
@@ -78,21 +95,7 @@ class Pix2Pix():
                               loss_weights=[1, 100],
                               optimizer=optimizer)
 
-        #self.generator.compile(loss='mae', loss_weights=[50], optimizer=optimizer)
-
-
-    def pixel_wise(self,imgs_A,fake_A):
-
-        L1_gen_diff = np.subtract(imgs_A[:,:,1],fake_A[:,:,1])
-        #print(imgs_A)
-        #print(imgs_A[:,:,1])
-        #print(L1_gen_diff)
-        L1_gen_abs = np.abs(L1_gen_diff)
-        #print(L1_gen_abs)
-        L1_gen = np.sum(L1_gen_abs)
-        #print(L1_gen)
-
-        return L1_gen;
+        self.generator.compile(loss=pixel_wise, loss_weights=[1], optimizer=optimizer)
 
     def build_generator(self):
         """U-Net Generator"""
@@ -188,12 +191,18 @@ class Pix2Pix():
                 #  Train Discriminator
                 # ---------------------
 
+                #print(imgs_A.shape)
+                #plt.figure(0)
+                #plt.imshow(imgs_A[0,:,:,1])
+                #plt.show()
+
                 # Condition on B and generate a translated version
                 fake_A = self.generator.predict(imgs_B)
 
-                #print(imgs_A.shape)
                 #plt.figure(0)
-                #plt.imshow(imgs_A[1][:][:][1])
+                #plt.imshow(imgs_A[0,:,:,1])
+                #plt.figure(1)
+                #plt.imshow(fake_A[0,:,:,1])
                 #plt.show()
 
                 # Train the discriminators (original images = real / generated = Fake)
@@ -209,14 +218,14 @@ class Pix2Pix():
                 g_loss = self.combined.train_on_batch([imgs_A, imgs_B], [valid, imgs_A])
 
                 #apply L1 loss on generator
-                #gen_loss = self.generator.train_on_batch([fake_A],[imgs_A])
+                gen_loss = self.generator.train_on_batch([imgs_A],[fake_A])
 
                 elapsed_time = datetime.datetime.now() - start_time
                 # Plot the progress
-                print ("[Epoch %d/%d] [Batch %d/%d] [D loss: %f, acc: %3d%%] [G loss: %f] [Gen loss:] time: %s" % (epoch, epochs,
+                print ("[Epoch %d/%d] [Batch %d/%d] [D loss: %f, acc: %3d%%] [G loss: %f] [Gen loss: %f] time: %s" % (epoch, epochs,
                                                                         batch_i, self.data_loader.n_batches,
                                                                         d_loss[0], 100*d_loss[1],
-                                                                        g_loss[0],
+                                                                        g_loss[0], gen_loss,
                                                                         elapsed_time))
 
                 accuracy.append(100*d_loss[1])
@@ -294,7 +303,7 @@ class Pix2Pix():
 if __name__ == '__main__':
     #train
     gan = Pix2Pix()
-    gan.train(epochs=15, batch_size=10, sample_interval=1)
+    gan.train(epochs=1, batch_size=1, sample_interval=1)
 
     """
     model = load_model("saved_model/gen_model_line.h5")

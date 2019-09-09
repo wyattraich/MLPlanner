@@ -37,8 +37,8 @@ class DataLoader():
             imgs_A.append(img_A)
             imgs_B.append(img_B)
 
-        imgs_A = np.array(imgs_A)/127.5 - 1.
-        imgs_B = np.array(imgs_B)/127.5 - 1.
+        imgs_A = np.array(imgs_A)/255 #127.5 - 1.
+        imgs_B = np.array(imgs_B)/255 #127.5 - 1.
 
         return imgs_A, imgs_B
 
@@ -68,11 +68,13 @@ class DataLoader():
                 imgs_A.append(img_A)
                 imgs_B.append(img_B)
 
+                #imgs_A = img_A
+                #imgs_B = img_B
+
             imgs_A = np.array(imgs_A)/255 #127.5 - 1.
             imgs_B = np.array(imgs_B)/255 #127.5 - 1.
 
             yield imgs_A, imgs_B
-
 
     def imread(self, path):
         return imageio.imread(path, pilmode='RGB').astype(np.float)

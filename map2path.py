@@ -213,10 +213,10 @@ class Pix2Pix():
 
                 elapsed_time = datetime.datetime.now() - start_time
                 # Plot the progress
-                print ("[Epoch %d/%d] [Batch %d/%d] [D loss: %f, acc: %3d%%] [G loss: %f] [Gen loss: %f] time: %s" % (epoch, epochs,
+                print ("[Epoch %d/%d] [Batch %d/%d] [D loss: %f, acc: %3d%%] [G loss: %f] [Gen loss:] time: %s" % (epoch, epochs,
                                                                         batch_i, self.data_loader.n_batches,
                                                                         d_loss[0], 100*d_loss[1],
-                                                                        g_loss[0], gen_loss,
+                                                                        g_loss[0],
                                                                         elapsed_time))
 
                 accuracy.append(100*d_loss[1])

@@ -18,7 +18,7 @@ import keras.backend as K
 import datetime
 import matplotlib.pyplot as plt
 import sys
-from data_loader import DataLoader
+from data_loader2 import DataLoader
 import numpy as np
 import os
 import tensorflow as tf
@@ -37,7 +37,8 @@ def pixel_wise(y_true,y_pred):
     #elem_float = K.cast(elem_bool,dtype='float32')
     #L1_gen = K.sum(elem_float)
 
-    return K.sum(K.abs(y_true[0,:,:,1] - y_pred[0,:,:,1]))
+    #return K.sum(K.abs(y_true[0,:,:,1] - y_pred[0,:,:,1]))
+    return np.sum(np.abs(y_true[0,:,:,1] - y_pred[0,:,:,1]))
 
 class Pix2Pix():
     def __init__(self):
@@ -220,10 +221,10 @@ class Pix2Pix():
                 g_loss = self.combined.train_on_batch([imgs_A, imgs_B], [valid, imgs_A])
 
                 #apply L1 loss on generator
-                gen_loss = self.generator.train_on_batch([fake_A],[imgs_A])
+                gen_loss = self.generator.train_on_batch([imgs_A],[fake_A])
 
                 #print(imgs_A[0,:,:,1])
-                print(np.sum(np.abs(imgs_A[0,:,:,1] - fake_A[0,:,:,1])))
+                #print(np.sum(np.abs(imgs_A[0,:,:,1] - fake_A[0,:,:,1])))
                 #print(K.sum(K.abs(imgs_A[0,:,:,1] - fake_A[0,:,:,1])))
 
                 elapsed_time = datetime.datetime.now() - start_time

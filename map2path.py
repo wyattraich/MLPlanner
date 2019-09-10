@@ -18,7 +18,7 @@ import keras.backend as K
 import datetime
 import matplotlib.pyplot as plt
 import sys
-from data_loader import DataLoader
+from data_loader2 import DataLoader
 import numpy as np
 import os
 import tensorflow as tf
@@ -199,11 +199,13 @@ class Pix2Pix():
                 # Condition on B and generate a translated version
                 fake_A = self.generator.predict(imgs_B)
 
-                #plt.figure(0)
+                plt.figure(0)
                 #plt.imshow(imgs_A[0,:,:,1])
-                #plt.figure(1)
+                plt.imshow(imgs_A[0,:,:,1])
+                plt.figure(1)
                 #plt.imshow(fake_A[0,:,:,1])
-                #plt.show()
+                plt.imshow(fake_A[0,:,:,1])
+                plt.show()
 
                 # Train the discriminators (original images = real / generated = Fake)
                 d_loss_real = self.discriminator.train_on_batch([imgs_A, imgs_B], valid)
@@ -218,7 +220,11 @@ class Pix2Pix():
                 g_loss = self.combined.train_on_batch([imgs_A, imgs_B], [valid, imgs_A])
 
                 #apply L1 loss on generator
-                gen_loss = self.generator.train_on_batch([imgs_A],[fake_A])
+                gen_loss = self.generator.train_on_batch([fake_A],[imgs_A])
+
+                #print(imgs_A[0,:,:,1])
+                print(np.sum(np.abs(imgs_A[0,:,:,1] - fake_A[0,:,:,1])))
+                #print(K.sum(K.abs(imgs_A[0,:,:,1] - fake_A[0,:,:,1])))
 
                 elapsed_time = datetime.datetime.now() - start_time
                 # Plot the progress

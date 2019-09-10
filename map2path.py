@@ -38,7 +38,7 @@ def pixel_wise(y_true,y_pred):
     #L1_gen = K.sum(elem_float)
 
     #return K.sum(K.abs(y_true[0,:,:,1] - y_pred[0,:,:,1]))
-    return np.sum(np.abs(y_true[0,:,:,1] - y_pred[0,:,:,1]))
+    return np.sum(np.absolute(np.subtract(y_true[0,:,:,1], y_pred[0,:,:,1])))
 
 class Pix2Pix():
     def __init__(self):
@@ -200,13 +200,13 @@ class Pix2Pix():
                 # Condition on B and generate a translated version
                 fake_A = self.generator.predict(imgs_B)
 
-                plt.figure(0)
+                #plt.figure(0)
                 #plt.imshow(imgs_A[0,:,:,1])
-                plt.imshow(imgs_A[0,:,:,1])
-                plt.figure(1)
+                #plt.imshow(imgs_A[0,:,:,1])
+                #plt.figure(1)
                 #plt.imshow(fake_A[0,:,:,1])
-                plt.imshow(fake_A[0,:,:,1])
-                plt.show()
+                #plt.imshow(fake_A[0,:,:,1])
+                #plt.show()
 
                 # Train the discriminators (original images = real / generated = Fake)
                 d_loss_real = self.discriminator.train_on_batch([imgs_A, imgs_B], valid)
@@ -220,7 +220,7 @@ class Pix2Pix():
                 # Train the generators
                 g_loss = self.combined.train_on_batch([imgs_A, imgs_B], [valid, imgs_A])
 
-                #apply L1 loss on generator
+                #apply custom loss on generator
                 gen_loss = self.generator.train_on_batch([imgs_A],[fake_A])
 
                 #print(imgs_A[0,:,:,1])
@@ -245,8 +245,8 @@ class Pix2Pix():
                  #   accuracy = d_loss[1]
 
                 # If at save interval => save generated image samples
-                #if epoch % sample_interval == 0 and batch_i == 1:
-                if batch_i % sample_interval == 0:
+                if epoch % sample_interval == 0 and batch_i == 1:
+                #if batch_i % sample_interval == 0:
                     self.sample_images(epoch, batch_i)
 
             #if accuracy >= accuracy_prev:

@@ -18,7 +18,7 @@ import keras.backend as K
 import datetime
 import matplotlib.pyplot as plt
 import sys
-from data_loader import DataLoader
+from data_loader2 import DataLoader
 import numpy as np
 import os
 import tensorflow as tf
@@ -37,8 +37,10 @@ def pixel_wise(y_true,y_pred):
     #elem_float = K.cast(elem_bool,dtype='float32')
     #L1_gen = K.sum(elem_float)
 
-    #return K.sum(K.abs(y_true[0,:,:,1] - y_pred[0,:,:,1]))
-    return np.sum(np.absolute(np.subtract(y_true[0,:,:,1], y_pred[0,:,:,1])))
+    return 0.01*K.sum(K.abs(y_true[0,:,:,1] - y_pred[0,:,:,1])) + 0.001*K.sum(K.abs(y_true - y_pred))
+
+def pixel_wise_np(y_true,y_pred):
+    return 0.01*np.sum(np.absolute(np.subtract(y_true[0,:,:,1], y_pred[0,:,:,1]))) + 0.001*np.sum(np.absolute(np.subtract(y_true, y_pred)))
 
 class Pix2Pix():
     def __init__(self):
@@ -92,11 +94,11 @@ class Pix2Pix():
         valid = self.discriminator([fake_A, img_B])
 
         self.combined = Model(inputs=[img_A, img_B], outputs=[valid, fake_A])
-        self.combined.compile(loss=['mse', 'mae'],
+        self.combined.compile(loss=['mse', pixel_wise],
                               loss_weights=[1, 100],
                               optimizer=optimizer)
 
-        self.generator.compile(loss=pixel_wise, loss_weights=[100], optimizer=optimizer)
+        #self.generator.compile(loss=pixel_wise, loss_weights=[100], optimizer=optimizer)
 
     def build_generator(self):
         """U-Net Generator"""
@@ -217,11 +219,15 @@ class Pix2Pix():
                 #  Train Generator
                 # -----------------
 
-                # Train the generators
+                # Train the generators ****?????
                 g_loss = self.combined.train_on_batch([imgs_A, imgs_B], [valid, imgs_A])
 
+                print(g_loss)
+
+                g_loss_np = pixel_wise_np(imgs_A,fake_A)
+
                 #apply custom loss on generator
-                gen_loss = self.generator.train_on_batch([imgs_A],[fake_A])
+                #gen_loss = self.generator.train_on_batch([imgs_A],[fake_A])
 
                 #print(imgs_A[0,:,:,1])
                 #print(np.sum(np.abs(imgs_A[0,:,:,1] - fake_A[0,:,:,1])))
@@ -229,10 +235,10 @@ class Pix2Pix():
 
                 elapsed_time = datetime.datetime.now() - start_time
                 # Plot the progress
-                print ("[Epoch %d/%d] [Batch %d/%d] [D loss: %f, acc: %3d%%] [G loss: %f] [Gen loss: %f] time: %s" % (epoch, epochs,
+                print ("[Epoch %d/%d] [Batch %d/%d] [D loss: %f, acc: %3d%%] [G loss: %f] [G loss_cust: %f] [Gen_np loss: %f] time: %s" % (epoch, epochs,
                                                                         batch_i, self.data_loader.n_batches,
                                                                         d_loss[0], 100*d_loss[1],
-                                                                        g_loss[0], gen_loss,
+                                                                        g_loss[0], g_loss[2], g_loss_np,
                                                                         elapsed_time))
 
                 accuracy.append(100*d_loss[1])

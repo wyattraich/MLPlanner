@@ -251,8 +251,8 @@ class Pix2Pix():
                  #   accuracy = d_loss[1]
 
                 # If at save interval => save generated image samples
-                if epoch % sample_interval == 0 and batch_i == 1:
-                #if batch_i % sample_interval == 0:
+                #if epoch % sample_interval == 0 and batch_i == 1:
+                if batch_i % sample_interval == 0:
                     self.sample_images(epoch, batch_i)
 
             #if accuracy >= accuracy_prev:

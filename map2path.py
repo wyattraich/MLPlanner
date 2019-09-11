@@ -37,7 +37,7 @@ def pixel_wise(y_true,y_pred):
     #elem_float = K.cast(elem_bool,dtype='float32')
     #L1_gen = K.sum(elem_float)
 
-    return 0.01*K.sum(K.abs(y_true[0,:,:,1] - y_pred[0,:,:,1])) + 0.001*K.sum(K.abs(y_true - y_pred))
+    return 10*K.sum(K.abs(y_true[0,:,:,1] - y_pred[0,:,:,1])) + K.sum(K.abs(y_true - y_pred))
 
 def pixel_wise_np(y_true,y_pred):
     return 0.01*np.sum(np.absolute(np.subtract(y_true[0,:,:,1], y_pred[0,:,:,1]))) + 0.001*np.sum(np.absolute(np.subtract(y_true, y_pred)))
@@ -222,8 +222,6 @@ class Pix2Pix():
                 # Train the generators ****?????
                 g_loss = self.combined.train_on_batch([imgs_A, imgs_B], [valid, imgs_A])
 
-                print(g_loss)
-
                 g_loss_np = pixel_wise_np(imgs_A,fake_A)
 
                 #apply custom loss on generator
@@ -317,7 +315,7 @@ class Pix2Pix():
 if __name__ == '__main__':
     #train
     gan = Pix2Pix()
-    gan.train(epochs=10, batch_size=1, sample_interval=200)
+    gan.train(epochs=500, batch_size=1, sample_interval=600)
 
     """
     model = load_model("saved_model/gen_model_line.h5")

@@ -94,7 +94,8 @@ class Pix2Pix():
         valid = self.discriminator([fake_A, img_B])
 
         self.combined = Model(inputs=[img_A, img_B], outputs=[valid, fake_A])
-        self.combined.compile(loss=['mse', pixel_wise],
+        #self.combined.compile(loss=['mse', pixel_wise],
+        self.combined.compile(loss=['mse', 'mae'],
                               loss_weights=[1, 100],
                               optimizer=optimizer)
 
@@ -222,7 +223,7 @@ class Pix2Pix():
                 # Train the generators ****?????
                 g_loss = self.combined.train_on_batch([imgs_A, imgs_B], [valid, imgs_A])
 
-                g_loss_np = pixel_wise_np(imgs_A,fake_A)
+                #g_loss_np = pixel_wise_np(imgs_A,fake_A)
 
                 #apply custom loss on generator
                 #gen_loss = self.generator.train_on_batch([imgs_A],[fake_A])
@@ -233,11 +234,12 @@ class Pix2Pix():
 
                 elapsed_time = datetime.datetime.now() - start_time
                 # Plot the progress
-                print ("[Epoch %d/%d] [Batch %d/%d] [D loss: %f, acc: %3d%%] [G loss: %f] [G loss_cust: %f] [Gen_np loss: %f] time: %s" % (epoch, epochs,
+                print ("[Epoch %d/%d] [Batch %d/%d] [D loss: %f, acc: %3d%%] [G loss: %f] [G loss_cust: ] [Gen_np loss: ] time: %s" % (epoch, epochs,
                                                                         batch_i, self.data_loader.n_batches,
                                                                         d_loss[0], 100*d_loss[1],
-                                                                        g_loss[0], g_loss[2], g_loss_np,
-                                                                        elapsed_time))
+                                                                        g_loss[0], elapsed_time))
+                                                                        #g_loss[2], g_loss_np,
+                                                                        #elapsed_time))
 
                 accuracy.append(100*d_loss[1])
                 epoch_vec.append(epoch)
@@ -249,8 +251,8 @@ class Pix2Pix():
                  #   accuracy = d_loss[1]
 
                 # If at save interval => save generated image samples
-                #if epoch % sample_interval == 0 and batch_i == 1:
-                if batch_i % sample_interval == 0:
+                if epoch % sample_interval == 0 and batch_i == 1:
+                #if batch_i % sample_interval == 0:
                     self.sample_images(epoch, batch_i)
 
             #if accuracy >= accuracy_prev:
@@ -307,7 +309,7 @@ class Pix2Pix():
                 axs[i, j].set_title(titles[i])
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("images/%s/%d_%d_line_n_cust.png" % (self.dataset_name, epoch, batch_i))
+        fig.savefig("images/%s/%d_%d_line_n_og_gan.png" % (self.dataset_name, epoch, batch_i))
         plt.close()
 
 
@@ -315,7 +317,7 @@ class Pix2Pix():
 if __name__ == '__main__':
     #train
     gan = Pix2Pix()
-    gan.train(epochs=500, batch_size=1, sample_interval=600)
+    gan.train(epochs=6000, batch_size=10, sample_interval=100)
 
     """
     model = load_model("saved_model/gen_model_line.h5")

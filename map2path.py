@@ -43,8 +43,8 @@ def pixel_wise(y_true,y_pred):
     A = y_pred[0,:,:,1]
 
     zero = tf.constant(0, dtype=tf.float32) # init constant 0, float64
-    p7 = tf.constant(0.7, dtype=tf.float32)
-    where = tf.not_equal(A, p7) #get bool tensor of every place that has any green
+    p6 = tf.constant(0.2, dtype=tf.float32)
+    where = tf.math.greater(A, p6) #get bool tensor of every place that has any green
     indices = tf.where(where) #get indicies of locations with green
     shift = tf.roll(indices,shift=1,axis=0) #shift indices down one
     diff_pre = tf.subtract(indices,shift) #subtract indicies from shifted
@@ -56,6 +56,10 @@ def pixel_wise(y_true,y_pred):
     siz = tf.size(diff_pre) #get length of diff matrix (both cols)
     len = tf.divide(siz,two)
     len_m_one = tf.math.subtract(len,one_f) #subract one from num rows for padding 1 vec
+
+    #if no green is found, return 1000 loss
+    #tf.cond(len_m_one < 0, len_m_one = tf.constant(1), a = tf.constant(1))
+
     one_v1 = tf.ones([1,2],dtype=tf.int64) #init [1,1]
     one_v2 = tf.ones([len,2],dtype=tf.int64)# init [n,2] ones to subtract from vec
     inv_mult_mat = tf.pad(one_v1, [[0, len_m_one], [0, 0]]) #apply paddings to one_v1
@@ -68,7 +72,7 @@ def pixel_wise(y_true,y_pred):
     discont_1 = K.sum(discont_ind) #sum them all up
 
     A = tf.transpose(A)#transpose A to check rot90 of above
-    where = tf.not_equal(A, p7) #get bool tensor of every place that has any green
+    where = tf.math.greater(A, p6) #get bool tensor of every place that has any green
     indices = tf.where(where) #get indicies of locations with green
     shift = tf.roll(indices,shift=1,axis=0) #shift indices down one
     diff_pre2 = tf.subtract(indices,shift) #subtract indicies from shifted
@@ -91,10 +95,12 @@ def pixel_wise(y_true,y_pred):
     #L1 loss addition
     abs_sum = K.sum(K.abs(y_true[0,:,:,1] - y_pred[0,:,:,1]))
     abs_sum_32 = tf.cast(abs_sum, dtype=tf.float32)
-    scale = tf.constant(0.001, dtype=tf.float32)
-    L1 = tf.multiply(scale,abs_sum_32)
+    scale_l1 = tf.constant(0.01, dtype=tf.float32)
+    scale_discont = tf.constant(0.0001, dtype=tf.float32)
+    L1 = tf.multiply(scale_l1,abs_sum_32)
+    cust = tf.multiply(scale_discont,result)
 
-    return tf.add(result,L1)
+    return tf.add(cust,L1)
 
 
 def pixel_wise_np(y_true,y_pred):
@@ -282,9 +288,9 @@ class Pix2Pix():
                 # Train the generators ****?????
                 g_loss = self.combined.train_on_batch([imgs_A, imgs_B], [valid, imgs_A])
 
-                plt.figure()
-                plt.imshow(fake_A[0,:,:,1])
-                plt.show()
+                #plt.figure()
+                #plt.imshow(fake_A[0,:,:,1])
+                #plt.show()
 
                 asdf = pixel_wise(imgs_A,fake_A)
 

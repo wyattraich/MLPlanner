@@ -33,13 +33,13 @@ import tensorflow as tf
 
 def pixel_wise(y_true,y_pred):
 
-    A = tf.constant([[0.1,0.0,0.0,0],
-                     [1.0,0.0,0.0,0],
-                     [1.0,0.0,0.0,1],
-                     [1.0,1.0,1.0,1]]
-                     ,dtype=tf.float64)
+    #A = tf.constant([[0.1,0.0,0.0,0],
+    #                 [1.0,0.0,0.0,0],
+    #                 [1.0,0.0,0.0,1],
+    #                 [1.0,1.0,1.0,1]]
+    #                 ,dtype=tf.float64)
 
-    #A = y_pred[2:254,2:254,1] #get green layer of pred image
+    A = y_pred[2:254,2:254,1] #get green layer of pred image
     #At = np.transpose(A) #transpose for second ck
 
     #plt.figure()
@@ -52,7 +52,8 @@ def pixel_wise(y_true,y_pred):
     with sess.as_default():
 
         zero = tf.constant(0, dtype=tf.float64) # init constant 0, float64
-        where = tf.not_equal(A, zero) #get bool tensor of every place that has any green
+        p7 = tf.constant(0.5, dtype=tf.float64)
+        where = tf.math.greater(A, p7) #get bool tensor of every place that has any green
         indices = tf.where(where) #get indicies of locations with green
         shift = tf.roll(indices,shift=1,axis=0) #shift indices down one
         diff_pre = tf.subtract(indices,shift) #subtract indicies from shifted
@@ -73,10 +74,10 @@ def pixel_wise(y_true,y_pred):
         where_one = tf.math.greater(diff_post1, one) # find where there are discontinuities (bool tensor)
         discont_ind = tf.where(where_one) #get indicies of where discont
         #need to add line to get actual diff matrix values of discontinuities
-        discont_1 = K.sum(discont_ind) #sum them all up
+        discont_1 = K.sum(discont_ind)
 
         A = tf.transpose(A)#transpose A to check rot90 of above
-        where = tf.not_equal(A, zero) #get bool tensor of every place that has any green
+        where = tf.math.greater(A, p7) #get bool tensor of every place that has any green
         indices = tf.where(where) #get indicies of locations with green
         shift = tf.roll(indices,shift=1,axis=0) #shift indices down one
         diff_pre2 = tf.subtract(indices,shift) #subtract indicies from shifted
@@ -86,8 +87,8 @@ def pixel_wise(y_true,y_pred):
 
         where_one = tf.math.greater(diff_post2, one) # find where there are discontinuities (bool tensor)
         discont_ind = tf.where(where_one) #get indicies of where discont
-        #need to add line to get actual diff matrix values of discontinuities
-        discont_2 = K.sum(discont_ind)  #sum them all up
+        discont_2 = K.sum(discont_ind)
+        #discont_2 = K.sum(discont_val)  #sum them all up
 
         discont_1_g = tf.math.less(discont_1,one) #true if no discont found
         discont_2_g = tf.math.less(discont_2,one) #false if discont found
@@ -107,13 +108,13 @@ def pixel_wise(y_true,y_pred):
         #print(len.eval())
         #print(mult_mat.eval())
         #print(diff_pre.eval())
-        #print(diff_post.eval())
+        #print(diff_post1.eval())
         #print(indices.eval())
         #print(shift.eval())
         #print(diff.eval())
         #print(d.eval())
-        #print(discont_1.eval())
-        #print(discont_2.eval())
+        print(discont_1.eval())
+        print(discont_2.eval())
         #print(discont_1_g.eval())
         #print(discont_2_g.eval())
         #print(d.eval())
@@ -131,11 +132,19 @@ if __name__ == '__main__':
 
     loss = []
 
-    for i in range(201,202):
-        a = '//Users/wyattraich/Desktop/work/mike_fast_march/path_line/p_%d.png'% i
+    for i in range(215,216):
+        #a = '//Users/wyattraich/Desktop/work/mike_fast_march/path_line/p_%d.png'% i
+        a = './line_1_d.png'
         img_test = imageio.imread(a, pilmode='RGB').astype(np.float)
+
+        plt.figure()
+        plt.imshow(img_test)
+
+        plt.figure()
+        plt.imshow(img_test[:,:,1])
+        plt.show()
+
         loss.append(pixel_wise(img_test,img_test))
-        print(i)
 
     #find non zeros
     print(loss)

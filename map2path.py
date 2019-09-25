@@ -23,21 +23,79 @@ import numpy as np
 import os
 import tensorflow as tf
 
+#def pixel_wise(y_true,y_pred):
+
+    #A = y_pred[0,:,:,1]
+    #zero = tf.constant(0, dtype=tf.float32)
+    #where = tf.not_equal(A, zero)
+    #indices = tf.where(where)
+
+    #tf.keras.backend.print_tensor(indices)
+
+    #return 0
+
+    #return 10*K.sum(K.abs(y_true[0,:,:,1] - y_pred[0,:,:,1])) + K.sum(K.abs(y_true - y_pred))
+    #add regularization connectivity test, connect adjacent green pixels in tree, ck for cont
+    #metric based on ground truth line
+
 def pixel_wise(y_true,y_pred):
 
-    #L1_gen_diff = np.subtract(imgs_A[0,:,:,1],fake_A[0,:,:,1])
-    #print(imgs_A[0,:,:,1])
-    #L1_gen_abs = np.abs(L1_gen_diff)
-    #print(L1_gen_abs)
-    #L1_gen = np.sum(L1_gen_abs)
-    #print(L1_gen)
+    A = y_pred[0,:,:,1]
 
-    #elem_bool = K.not_equal(y_true[0,:,:,1], y_pred[0,:,:,1])
-    #print(elem_bool)
-    #elem_float = K.cast(elem_bool,dtype='float32')
-    #L1_gen = K.sum(elem_float)
+    zero = tf.constant(0, dtype=tf.float32) # init constant 0, float64
+    p7 = tf.constant(0.7, dtype=tf.float32)
+    where = tf.not_equal(A, p7) #get bool tensor of every place that has any green
+    indices = tf.where(where) #get indicies of locations with green
+    shift = tf.roll(indices,shift=1,axis=0) #shift indices down one
+    diff_pre = tf.subtract(indices,shift) #subtract indicies from shifted
 
-    return 10*K.sum(K.abs(y_true[0,:,:,1] - y_pred[0,:,:,1])) + K.sum(K.abs(y_true - y_pred))
+    #get rid of first row in diff as this row causes false discontinuities after shift
+    one = tf.constant(1, dtype=tf.int64) #init constant 1, int64
+    one_f = tf.constant(1, dtype=tf.float64)
+    two = tf.constant(2,dtype=tf.int32) #init constant 2, int64
+    siz = tf.size(diff_pre) #get length of diff matrix (both cols)
+    len = tf.divide(siz,two)
+    len_m_one = tf.math.subtract(len,one_f) #subract one from num rows for padding 1 vec
+    one_v1 = tf.ones([1,2],dtype=tf.int64) #init [1,1]
+    one_v2 = tf.ones([len,2],dtype=tf.int64)# init [n,2] ones to subtract from vec
+    inv_mult_mat = tf.pad(one_v1, [[0, len_m_one], [0, 0]]) #apply paddings to one_v1
+    mult_mat = tf.abs(tf.subtract(inv_mult_mat,one_v2)) #create desired vec to get rid of first row in diff
+    diff_post1 = tf.multiply(mult_mat,diff_pre) #multiply mat by diff to remove first row
+
+    where_one = tf.math.greater(diff_post1, one) # find where there are discontinuities (bool tensor)
+    discont_ind = tf.where(where_one) #get indicies of where discont
+    #need to add line to get actual diff matrix values of discontinuities
+    discont_1 = K.sum(discont_ind) #sum them all up
+
+    A = tf.transpose(A)#transpose A to check rot90 of above
+    where = tf.not_equal(A, p7) #get bool tensor of every place that has any green
+    indices = tf.where(where) #get indicies of locations with green
+    shift = tf.roll(indices,shift=1,axis=0) #shift indices down one
+    diff_pre2 = tf.subtract(indices,shift) #subtract indicies from shifted
+
+    #get rid of first row
+    diff_post2 = tf.multiply(mult_mat,diff_pre2)
+
+    where_one = tf.math.greater(diff_post2, one) # find where there are discontinuities (bool tensor)
+    discont_ind = tf.where(where_one) #get indicies of where discont
+    #need to add line to get actual diff matrix values of discontinuities
+    discont_2 = K.sum(discont_ind)  #sum them all up
+
+    discont_1_g = tf.math.less(discont_1,one) #true if no discont found
+    discont_2_g = tf.math.less(discont_2,one) #false if discont found
+
+    d = tf.math.logical_or(discont_1_g, discont_2_g) #if either one or both is 1: no discont, if both are false: discont
+    # return the sum of both discontinuites if it is discontinuous. if it is continuous, return zero loss
+    result = tf.cond(d, lambda: tf.multiply(zero,zero), lambda: tf.math.add(tf.cast(discont_1, tf.float32),tf.cast(discont_2, tf.float32)))
+
+    #L1 loss addition
+    abs_sum = K.sum(K.abs(y_true[0,:,:,1] - y_pred[0,:,:,1]))
+    abs_sum_32 = tf.cast(abs_sum, dtype=tf.float32)
+    scale = tf.constant(0.001, dtype=tf.float32)
+    L1 = tf.multiply(scale,abs_sum_32)
+
+    return tf.add(result,L1)
+
 
 def pixel_wise_np(y_true,y_pred):
     return 0.01*np.sum(np.absolute(np.subtract(y_true[0,:,:,1], y_pred[0,:,:,1]))) + 0.001*np.sum(np.absolute(np.subtract(y_true, y_pred)))
@@ -94,10 +152,10 @@ class Pix2Pix():
         valid = self.discriminator([fake_A, img_B])
 
         self.combined = Model(inputs=[img_A, img_B], outputs=[valid, fake_A])
-        #self.combined.compile(loss=['mse', pixel_wise],
-        self.combined.compile(loss=['mse', 'mae'],
+        self.combined.compile(loss=['mse', pixel_wise],
                               loss_weights=[1, 100],
                               optimizer=optimizer)
+        #self.combined.compile(loss=['mse', 'mae'],
 
         #self.generator.compile(loss=pixel_wise, loss_weights=[100], optimizer=optimizer)
 
@@ -184,6 +242,7 @@ class Pix2Pix():
         epoch_vec = []
         G_loss = []
         D_loss = []
+        G_loss_cust = []
 
         for epoch in range(epochs):
 
@@ -223,6 +282,15 @@ class Pix2Pix():
                 # Train the generators ****?????
                 g_loss = self.combined.train_on_batch([imgs_A, imgs_B], [valid, imgs_A])
 
+                plt.figure()
+                plt.imshow(fake_A[0,:,:,1])
+                plt.show()
+
+                asdf = pixel_wise(imgs_A,fake_A)
+
+                sess = tf.Session() #initialize tf session
+                with sess.as_default():
+                    print(asdf.eval())
                 #g_loss_np = pixel_wise_np(imgs_A,fake_A)
 
                 #apply custom loss on generator
@@ -234,25 +302,24 @@ class Pix2Pix():
 
                 elapsed_time = datetime.datetime.now() - start_time
                 # Plot the progress
-                print ("[Epoch %d/%d] [Batch %d/%d] [D loss: %f, acc: %3d%%] [G loss: %f] [G loss_cust: ] [Gen_np loss: ] time: %s" % (epoch, epochs,
+                print ("[Epoch %d/%d] [Batch %d/%d] [D loss: %f, acc: %3d%%] [G loss: %f] [G loss_cust: %f] [Gen_np loss: ] time: %s" % (epoch, epochs,
                                                                         batch_i, self.data_loader.n_batches,
                                                                         d_loss[0], 100*d_loss[1],
-                                                                        g_loss[0], elapsed_time))
-                                                                        #g_loss[2], g_loss_np,
-                                                                        #elapsed_time))
+                                                                        g_loss[0], g_loss[2], elapsed_time))
 
                 accuracy.append(100*d_loss[1])
                 epoch_vec.append(epoch)
                 G_loss.append(g_loss[0])
                 D_loss.append(d_loss[0])
+                G_loss_cust.append(g_loss[2])
 
 
                 #if d_loss[1] > accuracy:
                  #   accuracy = d_loss[1]
 
                 # If at save interval => save generated image samples
-                if epoch % sample_interval == 0 and batch_i == 1:
-                #if batch_i % sample_interval == 0:
+                #if epoch % sample_interval == 0 and batch_i == 1:
+                if batch_i % sample_interval == 0:
                     self.sample_images(epoch, batch_i)
 
             #if accuracy >= accuracy_prev:
@@ -287,6 +354,12 @@ class Pix2Pix():
         plt.ylabel('Discriminator Loss')
         plt.savefig('saved_plots/d_loss.png')
 
+        plt.figure(4)
+        plt.plot(epoch_vec,G_loss_cust)
+        plt.title('Generator custom Loss vs Epoch')
+        plt.xlabel('Epoch')
+        plt.ylabel('Generator custom Loss')
+        plt.savefig('saved_plots/g_loss_cust.png')
 
     def sample_images(self, epoch, batch_i):
         os.makedirs('images/%s' % self.dataset_name, exist_ok=True)
@@ -309,7 +382,7 @@ class Pix2Pix():
                 axs[i, j].set_title(titles[i])
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("images/%s/%d_%d_line_n_og_gan.png" % (self.dataset_name, epoch, batch_i))
+        fig.savefig("images/%s/%d_%d_line_n_cont.png" % (self.dataset_name, epoch, batch_i))
         plt.close()
 
 
@@ -317,7 +390,7 @@ class Pix2Pix():
 if __name__ == '__main__':
     #train
     gan = Pix2Pix()
-    gan.train(epochs=6000, batch_size=10, sample_interval=100)
+    gan.train(epochs=20, batch_size=1, sample_interval=200)
 
     """
     model = load_model("saved_model/gen_model_line.h5")

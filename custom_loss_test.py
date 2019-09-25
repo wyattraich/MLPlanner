@@ -52,8 +52,8 @@ def pixel_wise(y_true,y_pred):
     with sess.as_default():
 
         zero = tf.constant(0, dtype=tf.float64) # init constant 0, float64
-        p7 = tf.constant(0.5, dtype=tf.float64)
-        where = tf.math.greater(A, p7) #get bool tensor of every place that has any green
+        p6 = tf.constant(0.5, dtype=tf.float64)
+        where = tf.math.greater(A, p6) #get bool tensor of every place that has any green
         indices = tf.where(where) #get indicies of locations with green
         shift = tf.roll(indices,shift=1,axis=0) #shift indices down one
         diff_pre = tf.subtract(indices,shift) #subtract indicies from shifted
@@ -65,6 +65,10 @@ def pixel_wise(y_true,y_pred):
         siz = tf.size(diff_pre) #get length of diff matrix (both cols)
         len = tf.divide(siz,two)
         len_m_one = tf.math.subtract(len,one_f) #subract one from num rows for padding 1 vec
+
+        is_empty = tf.equal(tf.size(indices), 0)
+        len_m_one = tf.cond(is_empty, lambda: tf.constant(0,dtype=tf.float64), lambda: len_m_one)
+
         one_v1 = tf.ones([1,2],dtype=tf.int64) #init [1,1]
         one_v2 = tf.ones([len,2],dtype=tf.int64)# init [n,2] ones to subtract from vec
         inv_mult_mat = tf.pad(one_v1, [[0, len_m_one], [0, 0]]) #apply paddings to one_v1
@@ -77,7 +81,7 @@ def pixel_wise(y_true,y_pred):
         discont_1 = K.sum(discont_ind)
 
         A = tf.transpose(A)#transpose A to check rot90 of above
-        where = tf.math.greater(A, p7) #get bool tensor of every place that has any green
+        where = tf.math.greater(A, p6) #get bool tensor of every place that has any green
         indices = tf.where(where) #get indicies of locations with green
         shift = tf.roll(indices,shift=1,axis=0) #shift indices down one
         diff_pre2 = tf.subtract(indices,shift) #subtract indicies from shifted
@@ -95,7 +99,8 @@ def pixel_wise(y_true,y_pred):
 
         d = tf.math.logical_or(discont_1_g, discont_2_g) #if either one or both is 1: no discont, if both are false: discont
         # return the sum of both discontinuites if it is discontinuous. if it is continuous, return zero loss
-        result = tf.cond(d, lambda: tf.multiply(zero,zero), lambda: tf.math.add(tf.cast(discont_1, tf.float64),tf.cast(discont_2, tf.float64)))
+        result = tf.cond(d, lambda: zero, lambda: tf.math.add(tf.cast(discont_1, tf.float64),tf.cast(discont_2, tf.float64)))
+        result = tf.cond(is_empty, lambda: tf.constant(1000, dtype=tf.float64), lambda: result)
 
         result = result.eval() #eval result so it can be returned
 
@@ -103,7 +108,9 @@ def pixel_wise(y_true,y_pred):
         #zeros = tf.constant([0,0], dtype=tf.int32)
 
         #print(type(len_m_one.eval()))
-        #print(len_m_one_arr.eval())
+        #print(indices.eval())
+        #print(is_empty.eval())
+        #print(len_m_one.eval())
         #print(siz.eval())
         #print(len.eval())
         #print(mult_mat.eval())
@@ -113,8 +120,8 @@ def pixel_wise(y_true,y_pred):
         #print(shift.eval())
         #print(diff.eval())
         #print(d.eval())
-        print(discont_1.eval())
-        print(discont_2.eval())
+        #print(discont_1.eval())
+        #print(discont_2.eval())
         #print(discont_1_g.eval())
         #print(discont_2_g.eval())
         #print(d.eval())
@@ -122,6 +129,8 @@ def pixel_wise(y_true,y_pred):
 
     return result
 
+def fn_true(a):
+    a = tf.constant(0,dtype=tf.float64)
 
 if __name__ == '__main__':
     img_test = imageio.imread('line_1.png', pilmode='RGB').astype(np.float)
@@ -135,6 +144,7 @@ if __name__ == '__main__':
     for i in range(215,216):
         #a = '//Users/wyattraich/Desktop/work/mike_fast_march/path_line/p_%d.png'% i
         a = './line_1_d.png'
+        #a = './6.png'
         img_test = imageio.imread(a, pilmode='RGB').astype(np.float)
 
         plt.figure()
@@ -149,4 +159,4 @@ if __name__ == '__main__':
     #find non zeros
     print(loss)
     wrong_ind = np.nonzero(loss)
-    print(wrong_ind)
+    #print(wrong_ind)

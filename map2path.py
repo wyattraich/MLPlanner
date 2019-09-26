@@ -304,7 +304,7 @@ class Pix2Pix():
                 #plt.imshow(fake_A[0,:,:,1])
                 #plt.show()
 
-                asdf = pixel_wise(imgs_A,fake_A)
+                #asdf = pixel_wise(imgs_A,fake_A)
 
                 #sess = tf.Session() #initialize tf session
                 #with sess.as_default():

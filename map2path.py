@@ -42,23 +42,29 @@ def pixel_wise(y_true,y_pred):
 
     A = y_pred[0,:,:,1]
 
-    zero = tf.constant(0, dtype=tf.float32) # init constant 0, float64
-    p6 = tf.constant(0.5, dtype=tf.float32)
+    #zero = tf.constant(0, dtype=tf.float32) # init constant 0, float64
+    zero = tf.Variable(0, dtype=tf.float32)
+    #p6 = tf.constant(0.5, dtype=tf.float32)
+    p6 = tf.Variable(0.5, dtype=tf.float32)
     where = tf.math.greater(A, p6) #get bool tensor of every place that has any green
     indices = tf.where(where) #get indicies of locations with green
     shift = tf.roll(indices,shift=1,axis=0) #shift indices down one
     diff_pre = tf.subtract(indices,shift) #subtract indicies from shifted
 
     #get rid of first row in diff as this row causes false discontinuities after shift
-    one = tf.constant(1, dtype=tf.int64) #init constant 1, int64
-    one_f = tf.constant(1, dtype=tf.float64)
-    two = tf.constant(2,dtype=tf.int32) #init constant 2, int64
+    #one = tf.constant(1, dtype=tf.int64) #init constant 1, int64
+    one = tf.Variable(1, dtype=tf.int64)
+    #one_f = tf.constant(1, dtype=tf.float64)
+    one_f = tf.Variable(1, dtype=tf.float64)
+    #two = tf.constant(2,dtype=tf.int32) #init constant 2, int64
+    two = tf.Variable(2,dtype=tf.int32)
     siz = tf.size(diff_pre) #get length of diff matrix (both cols)
     len = tf.divide(siz,two)
     len_m_one = tf.math.subtract(len,one_f) #subract one from num rows for padding 1 vec
 
     is_empty = tf.equal(tf.size(indices), 0)
-    len_m_one = tf.cond(is_empty, lambda: tf.constant(0,dtype=tf.float64), lambda: len_m_one)
+    #len_m_one = tf.cond(is_empty, lambda: tf.constant(0,dtype=tf.float64), lambda: len_m_one)
+    len_m_one = tf.cond(is_empty, lambda: tf.Variable(0,dtype=tf.float64), lambda: len_m_one)
 
     one_v1 = tf.ones([1,2],dtype=tf.int64) #init [1,1]
     one_v2 = tf.ones([len,2],dtype=tf.int64)# init [n,2] ones to subtract from vec
@@ -91,13 +97,16 @@ def pixel_wise(y_true,y_pred):
     d = tf.math.logical_or(discont_1_g, discont_2_g) #if either one or both is 1: no discont, if both are false: discont
     # return the sum of both discontinuites if it is discontinuous. if it is continuous, return zero loss
     result = tf.cond(d, lambda: zero, lambda: tf.math.add(tf.cast(discont_1, tf.float32),tf.cast(discont_2, tf.float32)))
-    result = tf.cond(is_empty, lambda: tf.constant(10000, dtype=tf.float32), lambda: result)
+    #result = tf.cond(is_empty, lambda: tf.constant(10000, dtype=tf.float32), lambda: result)
+    result = tf.cond(is_empty, lambda: tf.Variable(10000, dtype=tf.float32), lambda: result)
 
     #L1 loss addition
     abs_sum = K.sum(K.abs(y_true[0,:,:,1] - y_pred[0,:,:,1]))
     abs_sum_32 = tf.cast(abs_sum, dtype=tf.float32)
-    scale_l1 = tf.constant(0.01, dtype=tf.float32)
-    scale_discont = tf.constant(0.0001, dtype=tf.float32)
+    #scale_l1 = tf.constant(0.01, dtype=tf.float32)
+    scale_l1 = tf.Variable(0.01, dtype=tf.float32)
+    #scale_discont = tf.constant(0.0001, dtype=tf.float32)
+    scale_discont = tf.Variable(0.0001, dtype=tf.float32)
     L1 = tf.multiply(scale_l1,abs_sum_32)
     cust = tf.multiply(scale_discont,result)
 

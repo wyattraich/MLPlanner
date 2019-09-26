@@ -44,12 +44,9 @@ def pixel_wise(y_true,y_pred):
 
     #zero = tf.constant(0, dtype=tf.float32) # init constant 0, float64
     zero = tf.Variable(0, dtype=tf.float32)
-    zero.assign(0)
     zero_64 = tf.Variable(0, dtype=tf.float64)
-    zero.assign(0)
     #p6 = tf.constant(0.5, dtype=tf.float32)
     p6 = tf.Variable(0.5, dtype=tf.float32)
-    p6.assign(0.5)
     where = tf.math.greater(A, p6) #get bool tensor of every place that has any green
     indices = tf.where(where) #get indicies of locations with green
     shift = tf.roll(indices,shift=1,axis=0) #shift indices down one
@@ -58,13 +55,10 @@ def pixel_wise(y_true,y_pred):
     #get rid of first row in diff as this row causes false discontinuities after shift
     #one = tf.constant(1, dtype=tf.int64) #init constant 1, int64
     one = tf.Variable(1, dtype=tf.int64)
-    one.assign(1)
     #one_f = tf.constant(1, dtype=tf.float64)
     one_f = tf.Variable(1, dtype=tf.float64)
-    one_f.assign(1)
     #two = tf.constant(2,dtype=tf.int32) #init constant 2, int64
     two = tf.Variable(2,dtype=tf.int32)
-    two.assign(2)
     siz = tf.size(diff_pre) #get length of diff matrix (both cols)
     len = tf.divide(siz,two)
     len_m_one = tf.math.subtract(len,one_f) #subract one from num rows for padding 1 vec
@@ -106,7 +100,6 @@ def pixel_wise(y_true,y_pred):
     result = tf.cond(d, lambda: zero, lambda: tf.math.add(tf.cast(discont_1, tf.float32),tf.cast(discont_2, tf.float32)))
     #result = tf.cond(is_empty, lambda: tf.constant(10000, dtype=tf.float32), lambda: result)
     one_thou = tf.Variable(10000, dtype=tf.float32)
-    one_thou.assign(1000)
     result = tf.cond(is_empty, lambda: one_thou, lambda: result)
 
     #L1 loss addition
@@ -114,10 +107,8 @@ def pixel_wise(y_true,y_pred):
     abs_sum_32 = tf.cast(abs_sum, dtype=tf.float32)
     #scale_l1 = tf.constant(0.01, dtype=tf.float32)
     scale_l1 = tf.Variable(0.01, dtype=tf.float32)
-    scale_l1.assign(0.01)
     #scale_discont = tf.constant(0.0001, dtype=tf.float32)
     scale_discont = tf.Variable(0.0001, dtype=tf.float32)
-    scale_discont.assign(0.0001)
     L1 = tf.multiply(scale_l1,abs_sum_32)
     cust = tf.multiply(scale_discont,result)
 
@@ -417,7 +408,7 @@ class Pix2Pix():
 if __name__ == '__main__':
     #train
     gan = Pix2Pix()
-    gan.train(epochs=20, batch_size=1, sample_interval=200)
+    gan.train(epochs=2000, batch_size=1, sample_interval=200)
 
     """
     model = load_model("saved_model/gen_model_line.h5")
@@ -443,5 +434,4 @@ if __name__ == '__main__':
     plt.figure(2)
     plt.imshow(fake_A[0])
     plt.show()
-
     """

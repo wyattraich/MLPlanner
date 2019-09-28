@@ -18,7 +18,7 @@ import keras.backend as K
 import datetime
 import matplotlib.pyplot as plt
 import sys
-from data_loader2 import DataLoader
+from data_loader import DataLoader
 import numpy as np
 import os
 import tensorflow as tf
@@ -408,7 +408,7 @@ class Pix2Pix():
 if __name__ == '__main__':
     #train
     gan = Pix2Pix()
-    gan.train(epochs=2000, batch_size=1, sample_interval=200)
+    gan.train(epochs=1000, batch_size=1, sample_interval=200)
 
     """
     model = load_model("saved_model/gen_model_line.h5")

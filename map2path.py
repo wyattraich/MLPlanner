@@ -45,7 +45,6 @@ def pixel_wise(y_true,y_pred):
     #zero = tf.constant(0, dtype=tf.float32) # init constant 0, float64
     zero = tf.Variable(0, dtype=tf.float32)
     zero_64 = tf.Variable(0, dtype=tf.float64)
-    #p6 = tf.constant(0.5, dtype=tf.float32)
     p6 = tf.Variable(0.5, dtype=tf.float32)
     where = tf.math.greater(A, p6) #get bool tensor of every place that has any green
     indices = tf.where(where) #get indicies of locations with green
@@ -53,19 +52,15 @@ def pixel_wise(y_true,y_pred):
     diff_pre = tf.subtract(indices,shift) #subtract indicies from shifted
 
     #get rid of first row in diff as this row causes false discontinuities after shift
-    #one = tf.constant(1, dtype=tf.int64) #init constant 1, int64
     one = tf.Variable(1, dtype=tf.int64)
-    #one_f = tf.constant(1, dtype=tf.float64)
     one_f = tf.Variable(1, dtype=tf.float64)
-    #two = tf.constant(2,dtype=tf.int32) #init constant 2, int64
     two = tf.Variable(2,dtype=tf.int32)
     siz = tf.size(diff_pre) #get length of diff matrix (both cols)
     len = tf.divide(siz,two)
     len_m_one = tf.math.subtract(len,one_f) #subract one from num rows for padding 1 vec
 
-    is_empty = tf.equal(tf.size(indices), 0)
-    #len_m_one = tf.cond(is_empty, lambda: tf.constant(0,dtype=tf.float64), lambda: len_m_one)
-    len_m_one = tf.cond(is_empty, lambda: zero_64, lambda: len_m_one)
+    is_empty = tf.equal(tf.size(indices), 0) #if there are no green pixels, set is_empty to 1
+    len_m_one = tf.cond(is_empty, lambda: zero_64, lambda: len_m_one) #if it is empty, return that len_m_one = 0 if not, return actual value of len_m_one
 
     one_v1 = tf.ones([1,2],dtype=tf.int64) #init [1,1]
     one_v2 = tf.ones([len,2],dtype=tf.int64)# init [n,2] ones to subtract from vec
@@ -75,7 +70,6 @@ def pixel_wise(y_true,y_pred):
 
     where_one = tf.math.greater(diff_post1, one) # find where there are discontinuities (bool tensor)
     discont_ind = tf.where(where_one) #get indicies of where discont
-    #need to add line to get actual diff matrix values of discontinuities
     discont_1 = K.sum(discont_ind)
 
     A = tf.transpose(A)#transpose A to check rot90 of above
@@ -98,21 +92,18 @@ def pixel_wise(y_true,y_pred):
     d = tf.math.logical_or(discont_1_g, discont_2_g) #if either one or both is 1: no discont, if both are false: discont
     # return the sum of both discontinuites if it is discontinuous. if it is continuous, return zero loss
     result = tf.cond(d, lambda: zero, lambda: tf.math.add(tf.cast(discont_1, tf.float32),tf.cast(discont_2, tf.float32)))
-    #result = tf.cond(is_empty, lambda: tf.constant(10000, dtype=tf.float32), lambda: result)
-    one_thou = tf.Variable(10000, dtype=tf.float32)
-    result = tf.cond(is_empty, lambda: one_thou, lambda: result)
+    one_thou = tf.Variable(10000000, dtype=tf.float32)
+    result = tf.cond(is_empty, lambda: one_thou, lambda: result)# if no green, return loss of 100000
 
     #L1 loss addition
-    abs_sum = K.sum(K.abs(y_true[0,:,:,1] - y_pred[0,:,:,1]))
-    abs_sum_32 = tf.cast(abs_sum, dtype=tf.float32)
-    #scale_l1 = tf.constant(0.01, dtype=tf.float32)
-    scale_l1 = tf.Variable(0.01, dtype=tf.float32)
-    #scale_discont = tf.constant(0.0001, dtype=tf.float32)
-    scale_discont = tf.Variable(0.0001, dtype=tf.float32)
-    L1 = tf.multiply(scale_l1,abs_sum_32)
-    cust = tf.multiply(scale_discont,result)
+    abs_sum = K.sum(K.abs(y_true[0,:,:,:] - y_pred[0,:,:,:])) #take L1 loss of pictures
+    abs_sum_32 = tf.cast(abs_sum, dtype=tf.float32) #cast to float32
+    scale_l1 = tf.Variable(0.0001, dtype=tf.float32) #create constant for scale of L1 -
+    scale_discont = tf.Variable(0.00001, dtype=tf.float32) #create constant for scale of discont part -
+    L1 = tf.multiply(scale_l1,abs_sum_32) #multiply L1 scale
+    cust = tf.multiply(scale_discont,result) #multiply discont scale
 
-    return tf.add(cust,L1)
+    return tf.add(cust,L1)#return sum of L1 and discont
 
 
 def pixel_wise_np(y_true,y_pred):
@@ -272,11 +263,6 @@ class Pix2Pix():
                 #  Train Discriminator
                 # ---------------------
 
-                #print(imgs_A.shape)
-                #plt.figure(0)
-                #plt.imshow(imgs_A[0,:,:,1])
-                #plt.show()
-
                 # Condition on B and generate a translated version
                 fake_A = self.generator.predict(imgs_B)
 
@@ -304,26 +290,12 @@ class Pix2Pix():
                 #plt.imshow(fake_A[0,:,:,1])
                 #plt.show()
 
-                #asdf = pixel_wise(imgs_A,fake_A)
-
-                #sess = tf.Session() #initialize tf session
-                #with sess.as_default():
-                    #print(asdf.eval())
-                #g_loss_np = pixel_wise_np(imgs_A,fake_A)
-
-                #apply custom loss on generator
-                #gen_loss = self.generator.train_on_batch([imgs_A],[fake_A])
-
-                #print(imgs_A[0,:,:,1])
-                #print(np.sum(np.abs(imgs_A[0,:,:,1] - fake_A[0,:,:,1])))
-                #print(K.sum(K.abs(imgs_A[0,:,:,1] - fake_A[0,:,:,1])))
-
                 elapsed_time = datetime.datetime.now() - start_time
                 # Plot the progress
-                print ("[Epoch %d/%d] [Batch %d/%d] [D loss: %f, acc: %3d%%] [G loss: %f] [G loss_cust: %f] [Gen_np loss: ] time: %s" % (epoch, epochs,
+                print ("[Epoch %d/%d] [Batch %d/%d] [D loss: %f, acc: %3d%%] [G loss: %f] [G loss_1: %f] [G loss_cust: %f] time: %s" % (epoch, epochs,
                                                                         batch_i, self.data_loader.n_batches,
                                                                         d_loss[0], 100*d_loss[1],
-                                                                        g_loss[0], g_loss[2], elapsed_time))
+                                                                        g_loss[0], g_loss[1], g_loss[2], elapsed_time))
 
                 accuracy.append(100*d_loss[1])
                 epoch_vec.append(epoch)
@@ -400,7 +372,7 @@ class Pix2Pix():
                 axs[i, j].set_title(titles[i])
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("images/%s/%d_%d_line_n_cont.png" % (self.dataset_name, epoch, batch_i))
+        fig.savefig("images/%s/%d_%d_line_n_cont_t1.png" % (self.dataset_name, epoch, batch_i))
         plt.close()
 
 
@@ -408,7 +380,7 @@ class Pix2Pix():
 if __name__ == '__main__':
     #train
     gan = Pix2Pix()
-    gan.train(epochs=1000, batch_size=1, sample_interval=200)
+    gan.train(epochs=300, batch_size=1, sample_interval=300)
 
     """
     model = load_model("saved_model/gen_model_line.h5")

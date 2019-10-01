@@ -195,7 +195,7 @@ def pixel_wise(y_true,y_pred):
         abs_sum = K.sum(K.abs(y_true[:,:,:] - y_pred[:,:,:])) #take L1 loss of pictures
         abs_sum_32 = tf.cast(abs_sum, dtype=tf.float32) #cast to float32
         scale_l1 = tf.Variable(0.001, dtype=tf.float32) #create constant for scale of L1
-        scale_discont = tf.Variable(0.001, dtype=tf.float32) #create constant for scale of discont part
+        scale_discont = tf.Variable(0.01, dtype=tf.float32) #create constant for scale of discont part
         L1 = tf.multiply(scale_l1,abs_sum_32) #multiply L1 scale
         cust = tf.multiply(scale_discont,result) #multiply discont scale
         result_end = tf.add(cust,L1)

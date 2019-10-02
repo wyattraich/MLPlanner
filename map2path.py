@@ -92,7 +92,7 @@ def pixel_wise(y_true,y_pred):
     d = tf.math.logical_or(discont_1_g, discont_2_g) #if either one or both is 1: no discont, if both are false: discont
     # return the sum of both discontinuites if it is discontinuous. if it is continuous, return zero loss
     result = tf.cond(d, lambda: zero, lambda: tf.math.add(tf.cast(discont_1, tf.float32),tf.cast(discont_2, tf.float32)))
-    one_thou = tf.Variable(10000000, dtype=tf.float32)
+    one_thou = tf.Variable(100000000, dtype=tf.float32)
     result = tf.cond(is_empty, lambda: one_thou, lambda: result)# if no green, return loss of 100000
 
     #L1 loss addition

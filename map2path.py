@@ -18,7 +18,7 @@ import keras.backend as K
 import datetime
 import matplotlib.pyplot as plt
 import sys
-from data_loader import DataLoader
+from data_loader2 import DataLoader
 import numpy as np
 import os
 import tensorflow as tf
@@ -372,7 +372,7 @@ class Pix2Pix():
                 axs[i, j].set_title(titles[i])
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("images/%s/%d_%d_line_n_cont_t2.png" % (self.dataset_name, epoch, batch_i))
+        fig.savefig("images/%s/1_10_29_19/%d_%d.png" % (self.dataset_name, epoch, batch_i))
         plt.close()
 
 
@@ -380,7 +380,7 @@ class Pix2Pix():
 if __name__ == '__main__':
     #train
     gan = Pix2Pix()
-    gan.train(epochs=300, batch_size=1, sample_interval=300)
+    gan.train(epochs=10, batch_size=1, sample_interval=320)
 
     """
     model = load_model("saved_model/gen_model_line.h5")

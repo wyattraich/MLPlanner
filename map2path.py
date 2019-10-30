@@ -308,8 +308,8 @@ class Pix2Pix():
                  #   accuracy = d_loss[1]
 
                 # If at save interval => save generated image samples
-                #if epoch % sample_interval == 0 and batch_i == 1:
-                if batch_i % sample_interval == 0:
+                if epoch % sample_interval == 0 and batch_i == 1:
+                #if batch_i % sample_interval == 0:
                     self.sample_images(epoch, batch_i)
 
             #if accuracy >= accuracy_prev:
@@ -372,7 +372,7 @@ class Pix2Pix():
                 axs[i, j].set_title(titles[i])
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("images/%s/T2_10_29_19/%d_%d.png" % (self.dataset_name, epoch, batch_i))
+        fig.savefig("images/%s/T1_10_30_19/%d_%d.png" % (self.dataset_name, epoch, batch_i))
         plt.close()
 
 
@@ -380,7 +380,7 @@ class Pix2Pix():
 if __name__ == '__main__':
     #train
     gan = Pix2Pix()
-    gan.train(epochs=50, batch_size=20, sample_interval=320)
+    gan.train(epochs=1000, batch_size=20, sample_interval=5)
 
     """
     model = load_model("saved_model/gen_model_line.h5")

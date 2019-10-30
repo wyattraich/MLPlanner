@@ -98,8 +98,8 @@ def pixel_wise(y_true,y_pred):
     #L1 loss addition
     abs_sum = K.sum(K.abs(y_true[0,:,:,:] - y_pred[0,:,:,:])) #take L1 loss of pictures
     abs_sum_32 = tf.cast(abs_sum, dtype=tf.float32) #cast to float32
-    scale_l1 = tf.Variable(0.0001, dtype=tf.float32) #create constant for scale of L1 -
-    scale_discont = tf.Variable(0.001, dtype=tf.float32) #create constant for scale of discont part -
+    scale_l1 = tf.Variable(0.001, dtype=tf.float32) #create constant for scale of L1 -
+    scale_discont = tf.Variable(0.01, dtype=tf.float32) #create constant for scale of discont part -
     L1 = tf.multiply(scale_l1,abs_sum_32) #multiply L1 scale
     cust = tf.multiply(scale_discont,result) #multiply discont scale
 
@@ -372,7 +372,7 @@ class Pix2Pix():
                 axs[i, j].set_title(titles[i])
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("images/%s/T1_10_30_19/%d_%d.png" % (self.dataset_name, epoch, batch_i))
+        fig.savefig("images/%s/T2_10_30_19/%d_%d.png" % (self.dataset_name, epoch, batch_i))
         plt.close()
 
 
@@ -380,7 +380,7 @@ class Pix2Pix():
 if __name__ == '__main__':
     #train
     gan = Pix2Pix()
-    gan.train(epochs=1000, batch_size=20, sample_interval=5)
+    gan.train(epochs=4000, batch_size=20, sample_interval=20)
 
     """
     model = load_model("saved_model/gen_model_line.h5")

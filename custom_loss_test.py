@@ -134,23 +134,24 @@ def pixel_wise(y_true,y_pred):
 
 def pixel_wise(y_true,y_pred):
 
-    A = y_pred[2:254,2:254,1] #get green layer of pred imag
+    A = y_pred[2:430,2:430,1] #get green layer of pred imag
 
     sess = tf.Session() #initialize tf session
     with sess.as_default():
+
         #zero = tf.constant(0, dtype=tf.float32) # init constant 0, float64
-        zero = tf.Variable(0, dtype=tf.float32)
-        zero_64 = tf.Variable(0, dtype=tf.float64)
-        p6 = tf.Variable(0.5, dtype=tf.float64)
+        zero = tf.constant(0, dtype=tf.float32)
+        zero_64 = tf.constant(0, dtype=tf.float64)
+        p6 = tf.constant(0.5, dtype=tf.float64)
         where = tf.math.greater(A, p6) #get bool tensor of every place that has any green
         indices = tf.where(where) #get indicies of locations with green
         shift = tf.roll(indices,shift=1,axis=0) #shift indices down one
         diff_pre = tf.subtract(indices,shift) #subtract indicies from shifted
 
         #get rid of first row in diff as this row causes false discontinuities after shift
-        one = tf.Variable(1, dtype=tf.int64)
-        one_f = tf.Variable(1, dtype=tf.float64)
-        two = tf.Variable(2,dtype=tf.int32)
+        one = tf.constant(1, dtype=tf.int64)
+        one_f = tf.constant(1, dtype=tf.float64)
+        two = tf.constant(2,dtype=tf.int32)
         siz = tf.size(diff_pre) #get length of diff matrix (both cols)
         len = tf.divide(siz,two)
         len_m_one = tf.math.subtract(len,one_f) #subract one from num rows for padding 1 vec
@@ -188,26 +189,26 @@ def pixel_wise(y_true,y_pred):
         d = tf.math.logical_or(discont_1_g, discont_2_g) #if either one or both is 1: no discont, if both are false: discont
         # return the sum of both discontinuites if it is discontinuous. if it is continuous, return zero loss
         result = tf.cond(d, lambda: zero, lambda: tf.math.add(tf.cast(discont_1, tf.float32),tf.cast(discont_2, tf.float32)))
-        one_thou = tf.Variable(100000, dtype=tf.float32)
+        one_thou = tf.constant(10000000, dtype=tf.float32)
         result = tf.cond(is_empty, lambda: one_thou, lambda: result)# if no green, return loss of 100000
 
         #L1 loss addition
-        abs_sum = K.sum(K.abs(y_true[:,:,:] - y_pred[:,:,:])) #take L1 loss of pictures
-        abs_sum_32 = tf.cast(abs_sum, dtype=tf.float32) #cast to float32
-        scale_l1 = tf.Variable(0.001, dtype=tf.float32) #create constant for scale of L1
-        scale_discont = tf.Variable(0.01, dtype=tf.float32) #create constant for scale of discont part
-        L1 = tf.multiply(scale_l1,abs_sum_32) #multiply L1 scale
+        #abs_sum = K.sum(K.abs(y_true[0,:,:,:] - y_pred[0,:,:,:])) #take L1 loss of pictures
+        #abs_sum_32 = tf.cast(abs_sum, dtype=tf.float32) #cast to float32
+        scale_l1 = tf.constant(0.001, dtype=tf.float32) #create constant for scale of L1 -
+        scale_discont = tf.constant(0.01, dtype=tf.float32) #create constant for scale of discont part -
+        #L1 = tf.multiply(scale_l1,abs_sum_32) #multiply L1 scale
         cust = tf.multiply(scale_discont,result) #multiply discont scale
-        result_end = tf.add(cust,L1)
+        a = cust.eval()
 
-    return result_end.eval()#return sum of L1 and discont
+    return a#return sum of L1 and discont
 
 
 def fn_true(a):
     a = tf.constant(0,dtype=tf.float64)
 
 if __name__ == '__main__':
-    img_test = imageio.imread('line_1.png', pilmode='RGB').astype(np.float)
+    img_test = imageio.imread('m_1.png', pilmode='RGB').astype(np.float)
     imgs_test = []
 
     imgs_test.append(img_test)
@@ -217,7 +218,7 @@ if __name__ == '__main__':
 
     for i in range(215,216):
         #a = '//Users/wyattraich/Desktop/work/mike_fast_march/path_line/p_%d.png'% i
-        a = './line_1_d.png'
+        a = './p_1.png'
         #a = './6.png'
         img_test = imageio.imread(a, pilmode='RGB').astype(np.float)
 

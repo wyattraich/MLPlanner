@@ -372,7 +372,7 @@ class Pix2Pix():
                 axs[i, j].set_title(titles[i])
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("images/%s/T2_10_30_19/%d_%d.png" % (self.dataset_name, epoch, batch_i))
+        fig.savefig("images/%s/T1_11_11_19/%d_%d.png" % (self.dataset_name, epoch, batch_i))
         plt.close()
 
 
@@ -380,7 +380,7 @@ class Pix2Pix():
 if __name__ == '__main__':
     #train
     gan = Pix2Pix()
-    gan.train(epochs=4000, batch_size=20, sample_interval=20)
+    gan.train(epochs=10000, batch_size=20, sample_interval=100)
 
     """
     model = load_model("saved_model/gen_model_line.h5")

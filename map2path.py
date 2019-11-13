@@ -380,7 +380,7 @@ class Pix2Pix():
 if __name__ == '__main__':
     #train
     gan = Pix2Pix()
-    gan.train(epochs=10000, batch_size=20, sample_interval=100)
+    gan.train(epochs=10000, batch_size=30, sample_interval=50)
 
     """
     model = load_model("saved_model/gen_model_line.h5")

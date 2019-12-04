@@ -134,7 +134,11 @@ def pixel_wise(y_true,y_pred):
 
 def pixel_wise(y_true,y_pred):
 
-    A = y_pred[2:430,2:430,1] #get green layer of pred imag
+    A = y_pred[:,:,1]#y_pred[2:430,2:430,1] #get green layer of pred imag
+
+    plt.figure()
+    plt.imshow(A)
+    plt.show()
 
     sess = tf.Session() #initialize tf session
     with sess.as_default():
@@ -142,7 +146,7 @@ def pixel_wise(y_true,y_pred):
         #zero = tf.constant(0, dtype=tf.float32) # init constant 0, float64
         zero = tf.constant(0, dtype=tf.float32)
         zero_64 = tf.constant(0, dtype=tf.float64)
-        p6 = tf.constant(0.5, dtype=tf.float64)
+        p6 = tf.constant(230, dtype=tf.float64)
         where = tf.math.greater(A, p6) #get bool tensor of every place that has any green
         indices = tf.where(where) #get indicies of locations with green
         shift = tf.roll(indices,shift=1,axis=0) #shift indices down one
@@ -208,7 +212,7 @@ def fn_true(a):
     a = tf.constant(0,dtype=tf.float64)
 
 if __name__ == '__main__':
-    img_test = imageio.imread('m_1.png', pilmode='RGB').astype(np.float)
+    img_test = imageio.imread('1.png', pilmode='RGB').astype(np.float)
     imgs_test = []
 
     imgs_test.append(img_test)
@@ -218,19 +222,18 @@ if __name__ == '__main__':
 
     for i in range(215,216):
         #a = '//Users/wyattraich/Desktop/work/mike_fast_march/path_line/p_%d.png'% i
-        a = './p_1.png'
+        a = './1.png'
         #a = './6.png'
         img_test = imageio.imread(a, pilmode='RGB').astype(np.float)
 
-        plt.figure()
-        plt.imshow(img_test)
+        #plt.figure()
+        #plt.imshow(img_test)
 
-        plt.figure()
-        plt.imshow(img_test[:,:,1])
-        plt.show()
+        #plt.figure()
+        #plt.imshow(img_test[:,:,1])
+        #plt.show()
 
         loss.append(pixel_wise(img_test,img_test))
-
     #find non zeros
     print(loss)
     #wrong_ind = np.nonzero(loss)

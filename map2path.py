@@ -18,7 +18,7 @@ import keras.backend as K
 import datetime
 import matplotlib.pyplot as plt
 import sys
-from data_loader import DataLoader
+from data_loader2 import DataLoader
 import numpy as np
 import os
 import tensorflow as tf
@@ -45,7 +45,7 @@ def pixel_wise(y_true,y_pred):
     #zero = tf.constant(0, dtype=tf.float32) # init constant 0, float64
     zero = tf.Variable(0, dtype=tf.float32)
     zero_64 = tf.Variable(0, dtype=tf.float64)
-    p6 = tf.Variable(0.5, dtype=tf.float32)
+    p6 = tf.Variable(240, dtype=tf.float32)
     where = tf.math.greater(A, p6) #get bool tensor of every place that has any green
     indices = tf.where(where) #get indicies of locations with green
     shift = tf.roll(indices,shift=1,axis=0) #shift indices down one
@@ -372,7 +372,7 @@ class Pix2Pix():
                 axs[i, j].set_title(titles[i])
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("images/%s/T1_11_11_19/%d_%d.png" % (self.dataset_name, epoch, batch_i))
+        fig.savefig("images/%s/T1_11_15_19/%d_%d.png" % (self.dataset_name, epoch, batch_i))
         plt.close()
 
 
@@ -383,15 +383,24 @@ if __name__ == '__main__':
     gan.train(epochs=10000, batch_size=30, sample_interval=50)
 
     """
-    model = load_model("saved_model/gen_model_line.h5")
+    #code to grab random from test or train and test
+    model = load_model("saved_model/gen_model9999_line_cust.h5")
+    a = DataLoader("paths",img_res=(256, 256))
+    imgs_test, img_true = a.load_data(batch_size=1, is_testing=False)
 
-    #a = DataLoader("paths",img_res=(256, 256))
+    plt.figure(1)
+    plt.imshow(img_true[0])#imgs_test[0])
+    #plt.show()
 
-    #imgs_test, img_true = a.load_data(batch_size=1, is_testing=True)
+    fake_A = model.predict(img_true)
+    plt.figure(2)
+    plt.imshow(fake_A[0])
+    plt.show()
+    """
 
-    #print(img_test)
-
-    img_test = imageio.imread('4.png', pilmode='RGB').astype(np.float)
+    """
+    #code to read in one image from MLPlanner directory for testing
+    img_test = imageio.imread('56.png', pilmode='RGB').astype(np.float)
     imgs_test = []
 
     imgs_test.append(img_test)

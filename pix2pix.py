@@ -14,7 +14,7 @@ from keras.models import load_model
 import datetime
 import matplotlib.pyplot as plt
 import sys
-from data_loader import DataLoader
+from data_loader2 import DataLoader
 import numpy as np
 import os
 
@@ -27,7 +27,7 @@ class Pix2Pix():
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
 
         # Configure data loader
-        self.dataset_name = 'facades'
+        self.dataset_name = 'paths'
         self.data_loader = DataLoader(dataset_name=self.dataset_name,
                                       img_res=(self.img_rows, self.img_cols))
 
@@ -185,7 +185,7 @@ class Pix2Pix():
                                                                         elapsed_time))
 
                 # If at save interval => save generated image samples
-                if batch_i % sample_interval == 0:
+                if epoch % sample_interval == 0:
                     self.sample_images(epoch, batch_i)
 
 
@@ -217,4 +217,4 @@ class Pix2Pix():
 if __name__ == '__main__':
     gan = Pix2Pix()
 
-    gan.train(epochs=200, batch_size=1, sample_interval=200)
+    gan.train(epochs=4000, batch_size=10, sample_interval=50)
